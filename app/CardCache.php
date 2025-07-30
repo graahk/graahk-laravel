@@ -12,7 +12,10 @@ class CardCache
 
     public static function build(): Collection
     {
-        $cards = Card::all()->map->toJavaScript();
+        $cards = Card::query()
+            ->whereHas('sets', fn ($query) => $query->where('artifacts_set', false))
+            ->get()
+            ->map->toJavaScript();
 
         Cache::forget(self::KEY);
         Cache::rememberForever(self::KEY, fn () => $cards);

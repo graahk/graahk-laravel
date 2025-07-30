@@ -4,11 +4,13 @@ export class SwapTurn {
   resolve (game) {
     game._vue.queue([
       (() => {
-        game.checkTriggers('end_turn', game.currentPlayer.board)
+        game.checkTriggers('end_turn', [game.artifact, ...game.currentPlayer.board])
         window.nextJob()
       }),
       (() => {
         [game.currentPlayer, game.currentOpponent] = [game.currentOpponent, game.currentPlayer]
+
+        game.currentPlayer.keywords = game.currentPlayer.keywords.filter((keyword) => keyword !== 'scorching')
 
         // If you are the new active player
         if (game.currentPlayer.id === game.player.id) {
@@ -25,20 +27,20 @@ export class SwapTurn {
           }
         })
 
-        game.checkTriggers('start_turn', game.currentPlayer.board.filter((d) => d.dead === false))
+        game.checkTriggers('start_turn', [game.artifact, ...game.currentPlayer.board.filter((d) => d.dead === false)])
         window.nextJob()
       }),
       (() => {
-        game.effect('gain_energy', { amount: 3 }, [game.currentPlayer])
+        game.currentPlayer.gain_energy({ amount: 3 })
         window.nextJob()
       }),
       (() => {
         game.currentPlayer.drawsThisTurn = 0
-        game.effect('draw_cards', { amount: 1 }, [game.currentPlayer])
+        game.currentPlayer.draw_cards({ amount: 1 })
         window.nextJob()
       }),
       (() => {
-        game.effect('ready_dudes', {}, game.currentPlayer.board)
+        game.currentPlayer.ready_dudes()
         window.nextJob()
       }),
     ], 'end')

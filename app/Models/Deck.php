@@ -13,6 +13,7 @@ class Deck extends Model
         'name',
         'user_id',
         'format',
+        'weekly_pack_id',
         'main_card_id',
         'cards',
     ];
@@ -20,6 +21,11 @@ class Deck extends Model
     protected $casts = [
         'format' => Format::class,
         'cards' => 'array',
+    ];
+
+    public $with = [
+        'mainCard',
+        'weeklyPack',
     ];
 
     public function user()
@@ -32,6 +38,11 @@ class Deck extends Model
         return $this->belongsTo(Card::class);
     }
 
+    public function weeklyPack()
+    {
+        return $this->belongsTo(WeeklyPack::class);
+    }
+
     public function route(): string
     {
         return route('deck.edit', $this);
@@ -40,6 +51,11 @@ class Deck extends Model
     public function isLegal(): bool
     {
         return Collection::wrap($this->cards)->sum() === 30;
+    }
+
+    public function weeklyEnded(): bool
+    {
+        return $this->format === Format::WEEKLY_ENDED;
     }
 
     public function image(): null | Attachment
@@ -51,11 +67,13 @@ class Deck extends Model
 
     public function list(): Collection
     {
+        $cards = Card::find(array_keys($this->cards ?? []));
+
         return Collection::wrap($this->cards)
-            ->filter(fn (int $amount, int $cardId) => Card::find($cardId))
+            ->filter(fn (int $amount, int $cardId) => $cards->pluck('id')->contains($cardId))
             ->map(fn (int $amount, int $cardId) => [
                 'amount' => $amount,
-                'card' => Card::find($cardId)->toJavaScript(),
+                'card' => $cards->firstWhere('id', $cardId)->toJavaScript(),
             ])
             ->values();
     }

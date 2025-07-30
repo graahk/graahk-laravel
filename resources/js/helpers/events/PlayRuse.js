@@ -14,7 +14,6 @@ export class PlayRuse {
 
         game._vue.$refs.display.setCard(card)
         game.currentPlayer.hand = game.currentPlayer.hand.filter((c, key) => key !== event.data.key)
-        // game.currentPlayer.hand = game.currentPlayer.hand.filter((c) => c.uuid !== card.uuid)
         game.currentPlayer.energy -= card.cost
 
         await timeout(card.enterSpeed || 500)
@@ -22,13 +21,26 @@ export class PlayRuse {
         window.nextJob()
       }),
       (() => {
-        game.checkTriggers('cast_ruse', [card], game.getTargets('from_uuid', null, event.data.target))
+        // Trigger the effects of the ruse
+        game.checkTriggers('cast_ruse', [card], game.getTargets('from_uuid', null, event.data.target), card)
         window.nextJob()
       }),
       (async () => {
         await timeout(1000)
         game._vue.$refs.display.setCard(null)
         game.currentPlayer.graveyard.push(card)
+        window.nextJob()
+      }),
+      (() => {
+        game.checkTriggers('play_ruse', [window.game.artifact, ...game.currentPlayer.board, ...game.currentOpponent.board], card)
+        window.nextJob()
+      }),
+      (() => {
+        game.checkTriggers('player_play_ruse', game.currentPlayer.board, card)
+        window.nextJob()
+      }),
+      (() => {
+        game.checkTriggers('opponent_play_ruse', game.currentOpponent.board, card)
         window.nextJob()
       }),
     ])

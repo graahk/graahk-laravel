@@ -14,6 +14,9 @@ enum Keyword: string implements HasLabel
     case GHOSTLY = 'ghostly';
     case SCENERY = 'scenery';
     case TIRELESS = 'tireless';
+    case WITHERING = 'withering';
+    case INNUMERABLE = 'innumerable';
+    case SCORCHING = 'scorching';
 
     public function getLabel(): ?string
     {
@@ -23,6 +26,9 @@ enum Keyword: string implements HasLabel
             self::GHOSTLY => 'Ghostly',
             self::SCENERY => 'Scenery',
             self::TIRELESS => 'Tireless',
+            self::WITHERING => 'Withering',
+            self::INNUMERABLE => 'Innumerable',
+            self::SCORCHING => 'Scorching',
         };
     }
 
@@ -34,6 +40,9 @@ enum Keyword: string implements HasLabel
             self::GHOSTLY => 'Ghostly',
             self::SCENERY => 'Scenery',
             self::TIRELESS => 'Tireless',
+            self::WITHERING => 'Withering',
+            self::INNUMERABLE => 'Innumerable',
+            self::SCORCHING => 'Scorching',
         };
     }
 
@@ -42,9 +51,12 @@ enum Keyword: string implements HasLabel
         return match ($this) {
             self::PROTECT => 'This dude must be attacked first, if able',
             self::RUSH => 'Can attack in the same turn this dude was played',
-            self::GHOSTLY => 'This dude cannot be directly targeted by abilities',
+            self::GHOSTLY => 'This dude cannot be directly targeted by  special abilities on dudes or ruses',
             self::SCENERY => 'This dude cannot attack or deal damage',
             self::TIRELESS => 'This dude does not die when its power reaches 0',
+            self::WITHERING => 'Any damage dealt to this dude will kill it (ignoring Tireless)',
+            self::INNUMERABLE => 'You can have any number of this card in your deck',
+            self::SCORCHING => 'If a target with Scorching is attacked, it deals 100 damage to the attacker',
         };
     }
 }

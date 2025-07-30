@@ -10,33 +10,62 @@
         label="Dashboard"
     />
 
-    <x-navigation.item
-        route="{{ route('profile.edit') }}"
-        :active="request()->routeIs('profile.edit')"
-        icon="heroicon-o-user-circle"
-        label="Profile"
-    />
+    @if (auth()->check())
+        <x-navigation.item
+            route="{{ route('profile.edit') }}"
+            :active="request()->routeIs('profile.edit')"
+            icon="heroicon-o-user-circle"
+            label="Profile"
+        />
+    @endif
 
+    @if (auth()->check())
+        <x-navigation.item
+            route="{{ route('deck.index') }}"
+            :active="request()->routeIs('deck.index')"
+            icon="heroicon-o-square-3-stack-3d"
+            label="Decks"
+        />
+    @endif
+    
     <x-navigation.item
-        route="{{ route('deck.index') }}"
-        :active="request()->routeIs('deck.index')"
-        icon="heroicon-o-square-3-stack-3d"
-        label="Decks"
+        route="{{ route('library.index') }}"
+        :active="request()->routeIs('library.index')"
+        icon="heroicon-o-book-open"
+        label="Library"
     />
+    
+    @if (! auth()->check())
+        <x-navigation.item
+            route="{{ route('login.index') }}"
+            :active="request()->routeIs('login.index')"
+            icon="heroicon-o-arrow-left-end-on-rectangle"
+            label="Log in"
+        />
+    @endif
 
-    <x-navigation.item
-        route="{{ route('server.index') }}"
-        :active="request()->routeIs('server.index')"
-        icon="heroicon-o-globe-alt"
-        :label="'Server browser (' . \App\Models\Game::ongoing()->count() . ')'"
-    />
+    @if (auth()->check())
+        @php
+            $count = \App\Models\Game::ongoing()->count();
+        @endphp
 
-    <div class="grow"></div>
+        <x-navigation.item
+            route="{{ route('server.index') }}"
+            :active="request()->routeIs('server.index')"
+            icon="heroicon-o-globe-alt"
+            label="Server browser"
+            :subtitle="$count . ' ' . Str::plural('table', $count) . ' ongoing'"
+        />
+    @endif
 
-    <x-navigation.item
-        route="{{ route('logout.index') }}"
-        :active="request()->routeIs('logout.index')"
-        icon="heroicon-o-arrow-right-start-on-rectangle"
-        label="Logout"
-    />
+    @if (auth()->check())
+        <div class="grow"></div>
+
+        <x-navigation.item
+            route="{{ route('logout.index') }}"
+            :active="request()->routeIs('logout.index')"
+            icon="heroicon-o-arrow-right-start-on-rectangle"
+            label="Logout"
+        />
+    @endif
 </div>

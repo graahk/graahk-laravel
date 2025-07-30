@@ -1,6 +1,6 @@
 import { Dude } from "../entities/Dude"
-import { Player } from "../entities/Player"
 import { AttackAnimation } from "../entities/animations/AttackAnimation"
+import { FireExplosionAnimation } from "../entities/animations/FireExplosionAnimation"
 
 export class Attack {
   resolve (game, event) {
@@ -19,8 +19,14 @@ export class Attack {
 
         new AttackAnimation({ attacker: attacker, defender: defender }).resolve(async (animation) => {
           defender.deal_damage({ amount: a })
+
           if (defender instanceof Dude && ! defender.keywords.includes('scenery')) {
             attacker.deal_damage({ amount: d })
+          }
+
+          if (defender.keywords.includes('scorching')) {
+            attacker.deal_damage({ amount: 100 })
+            new FireExplosionAnimation({ target: [defender] }).resolve()
           }
 
           if (defender.dead) game.checkTriggers('killing_blow', [attacker])
@@ -32,7 +38,7 @@ export class Attack {
         })
       }),
       (() => {
-        game.checkTriggers('after_attack', [attacker])
+        game.checkTriggers('after_attack', [attacker], [defender])
         window.nextJob()
       }),
     ])

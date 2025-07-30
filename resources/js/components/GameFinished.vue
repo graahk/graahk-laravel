@@ -4,12 +4,12 @@
     style="z-index: 1000000"
   >
     <TransitionGroup
-      class="relative flex gap-4 justify-center align-stretch game-finished-content w-full h-[60vh]"
+      class="relative flex gap-4 justify-center align-stretch game-finished-content w-full h-[75vh]"
       name="steps"
       tag="div"
     >
       <div
-        class="bg-background p-8 w-1/3 rounded-lg flex flex-col justify-between items-center h-[60vh] absolute top-0"
+        class="bg-background p-8 w-1/3 rounded-lg flex flex-col justify-between items-center h-[75vh] absolute top-0"
         v-if="step === 1"
         v-bind:key="1"
       >
@@ -52,25 +52,55 @@
       </div>
 
       <div
-        class="bg-background p-8 w-1/3 rounded-lg flex flex-col justify-between items-center h-[60vh] absolute top-0"
+        class="bg-background p-8 w-1/3 rounded-lg flex flex-col justify-between items-center h-[75vh] absolute top-0"
         v-if="step === 2"
         v-bind:key="2"
       >
-        <template v-if="game.afterGameUpgrades[$parent.playerId]">
+        <template v-if="game.afterGameUpgrades[$parent.playerId] || false">
           <div class="flex flex-col items-center">
             <p class="text-sm opacity-50">
-              You gained experience for a card!
+              A card gained experience!
             </p>
 
             <p
               class="font-bold text-xl"
-              v-text="`${game.afterGameUpgrades[$parent.playerId].name} gained experience!`"
+              v-text="`${game.afterGameUpgrades[$parent.playerId].card.name} gained ${game.afterGameUpgrades[$parent.playerId].gained} experience!`"
             />
           </div>
 
-          <div class="w-1/3 aspect-[2.5/3.5]">
+          <div class="w-[66%]">
+            <div class="flex w-full relative my-8">
+              <div class="absolute inset-0 flex w-full border border-border overflow-hidden rounded-full h-6 bg-surface">
+                <div
+                  ref="exp_bar"
+                  class="absolute top-0 bottom-0 left-0 bg-green-500 z-10 transition-all duration-[3s] ease-in-out"
+                  v-bind:style="`width: ${game.afterGameUpgrades[$parent.playerId].started_at / 4000 * 100}%`"
+                ></div>
+
+                <div
+                  class="absolute top-0 bottom-0 left-0 bg-green-700 z-0"
+                  v-bind:style="`width: ${currentExp / 4000 * 100}%`"
+                ></div>
+              </div>
+
+              <div class="absolute inset-0 flex w-full h-6">
+                <div
+                  v-for="threshold in [500, 1500]"
+                  :key="threshold"
+                  class="absolute -top-2 -bottom-2 border-l-2"
+                  v-bind:style="`left: ${threshold / 4000 * 100}%`"
+                  v-bind:class="{
+                    'border-green-500': currentExp >= threshold,
+                    'border-border': currentExp < threshold,
+                  }"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-[50%] aspect-[2.5/3.5]">
             <Card
-              :card="game.afterGameUpgrades[$parent.playerId]"
+              :card="game.afterGameUpgrades[$parent.playerId].card"
               full-sized
               glowing
             />
@@ -113,6 +143,13 @@ export default {
   },
   methods: {
     next () {
+      if (this.step === 1) {
+        // Start animation for the experience bar
+        window.setTimeout(() => {
+          this.$refs.exp_bar.style.width = `${this.currentExp / 4000 * 100}%`
+        }, 250)
+      }
+
       if (this.step === 2) {
         window.location.href = '/server'
       }
@@ -121,6 +158,12 @@ export default {
     },
     dataReceived () {
       this.receivedData = true
+    },
+  },
+  computed: {
+    currentExp () {
+      return this.game.afterGameUpgrades[this.$parent.playerId].started_at
+        + this.game.afterGameUpgrades[this.$parent.playerId].gained
     },
   },
 }

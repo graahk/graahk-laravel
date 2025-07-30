@@ -10,17 +10,20 @@ export class ExplosionAnimation extends Animation {
 
   async resolve (callback, finallyCallback) {
     const div = this.data.target
-    const width = this.data.width || 200
-    const image = 'explosion/' + (this.data.color || 'yellow')
 
-    this._meta = {
-      x: (div.offsetLeft + div.offsetWidth / 2) - (width / 2),
-      y: (div.offsetTop + div.offsetHeight / 2) - (width / 2),
-      width: width,
-      image: image,
+    if (div) {
+      const width = this.data.width || 200
+      const image = 'explosion/' + (this.data.color || 'yellow')
+
+      this._meta = {
+        x: (div.offsetLeft + div.offsetWidth / 2) - (width / 2),
+        y: (div.offsetTop + div.offsetHeight / 2) - (width / 2),
+        width: width,
+        image: image,
+      }
+
+      super.resolve()
     }
-
-    super.resolve()
 
     await window.timeout(this.duration)
     if (callback) callback()

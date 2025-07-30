@@ -23,11 +23,22 @@ window.timeout = (delay) => {
 }
 
 window.requiresTarget = [
-  'dude',
-  'dude_player',
-  'dude_opponent',
-  'hand_target',
+  'target_dude',
   'target_anything',
+  'target_hand',
+  'target_player',
+]
+
+window.triggerRequiresTarget = [
+  'enter_field',
+  'cast_ruse',
+]
+
+window.shouldRefetchTargets = [
+  'all',
+  'all_dudes',
+  'all_players',
+  'all_hand',
 ]
 
 document.addEventListener('DOMContentLoaded', () => {

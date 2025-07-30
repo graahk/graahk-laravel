@@ -13,6 +13,7 @@ enum CardType: string implements HasLabel
     case DUDE = 'dude';
     case TOKEN = 'token';
     case RUSE = 'ruse';
+    case ARTIFACT = 'artifact';
 
     public function getLabel(): ?string
     {
@@ -20,6 +21,14 @@ enum CardType: string implements HasLabel
             self::DUDE => 'Dude',
             self::TOKEN => 'Token',
             self::RUSE => 'Ruse',
+            self::ARTIFACT => 'Artifact',
         };
+    }
+
+    public static function filterOptions(): Collection
+    {
+        return collect(self::cases())
+            ->reject(fn (self $type) => $type === self::TOKEN)
+            ->mapWithKeys(fn (self $type) => [$type->value => $type->getLabel()]);
     }
 }

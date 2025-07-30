@@ -17,6 +17,8 @@ export class Animation {
   }
 
   addClass ($el, className) {
+    if (! $el) return
+
     $el.classList.add(className)
     window.setTimeout(
       () => $el.classList.remove(className),

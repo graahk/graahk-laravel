@@ -16,6 +16,7 @@ class User extends Authenticatable
         'username',
         'email',
         'avatar_id',
+        'has_foil_avatar',
         'password',
     ];
 
@@ -27,11 +28,27 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'has_foil_avatar' => 'boolean',
     ];
 
     public function avatar()
     {
         return $this->belongsTo(Attachment::class, 'avatar_id');
+    }
+
+    // Old avatars
+    public function oldAvatars()
+    {
+        return $this->belongsToMany(Attachment::class, 'attachment_user', 'user_id', 'attachment_id')
+            ->orderBy('attachments.created_at', 'desc');
+    }
+
+    public function getOldAvatars()
+    {
+        return collect([
+            ...$this->oldAvatars,
+            Attachment::find(3700),
+        ]);
     }
 
     public function decks()

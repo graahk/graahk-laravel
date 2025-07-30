@@ -46,6 +46,11 @@ class CardResource extends Resource
                     ->label('Image')
                     ->required(),
 
+                Select::make('artist_id')
+                    ->label('Artist')
+                    ->options(\App\Models\Artist::all()->pluck('name', 'id'))
+                    ->required(),
+
                 Grid::make()->schema([
                     Select::make('type')
                         ->options(CardType::list())
@@ -56,17 +61,19 @@ class CardResource extends Resource
                     Select::make('tribes')
                         ->options(Tribe::list())
                         ->helperText('"Ruse" is added automatically as a tribe if the card type is "ruse."')
+                        ->hidden(fn (Get $get) => in_array($get('type'), ['artifact']))
                         ->multiple(),
 
                     TextInput::make('cost')
                         ->type('number')
                         ->default(1)
+                        ->hidden(fn (Get $get) => in_array($get('type'), ['artifact']))
                         ->required(),
 
                     TextInput::make('power')
                         ->type('number')
                         ->default(100)
-                        ->hidden(fn (Get $get) => $get('type') === 'ruse')
+                        ->hidden(fn (Get $get) => in_array($get('type'), ['ruse', 'artifact']))
                         ->required(),
                 ]),
 
@@ -106,12 +113,14 @@ class CardResource extends Resource
                     ->options(Keyword::list())
                     ->multiple(),
 
-                Repeater::make('effects')->schema([
-                    Grid::make()->schema([
+                Repeater::make('effects')->collapsible()->schema([
+                    Grid::make()->schema(fn (Get $get) => [
                         Select::make('trigger')
                             ->options(Trigger::list())
                             ->required()
                             ->reactive(),
+
+                        ...Trigger::tryFrom($get('trigger'))?->schema() ?? [],
 
                         Select::make('effect')
                             ->options(Effect::list())

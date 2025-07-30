@@ -26,11 +26,9 @@ export class PlayDude {
 
         game.currentPlayer.board.push(card)
         game.currentPlayer.hand = game.currentPlayer.hand.filter((c, key) => key !== event.data.key)
-        // game.currentPlayer.hand = game.currentPlayer.hand.filter((c) => c.uuid !== card.uuid)
         game.currentPlayer.energy -= card.cost
 
         if (card.entranceAnimation?.animation) {
-          console.log(card)
           window.setTimeout(() => {
             new HandleAnimation(card, null, card.entranceAnimation, card).resolve(() => {
               window.nextJob()
@@ -47,21 +45,21 @@ export class PlayDude {
       }),
       (() => {
         if (card instanceof Dude) {
-          game.checkTriggers('play_dude', [...game.currentPlayer.board, ...game.opponent.board].filter((c) => c.uuid !== card.uuid))
+          game.checkTriggers('play_dude', [game.artifact, ...game.currentPlayer.board, ...game.currentOpponent.board].filter((c) => c && c.uuid !== card.uuid), card)
         }
 
         window.nextJob()
       }),
       (() => {
         if (card instanceof Dude) {
-          game.checkTriggers('player_play_dude', game.currentPlayer.board.filter((c) => c.uuid !== card.uuid))
+          game.checkTriggers('player_play_dude', game.currentPlayer.board.filter((c) => c.uuid !== card.uuid), card)
         }
 
         window.nextJob()
       }),
       (() => {
         if (card instanceof Dude) {
-          game.checkTriggers('opponent_play_dude', game.currentOpponent.board.filter((c) => c.uuid !== card.uuid))
+          game.checkTriggers('opponent_play_dude', game.currentOpponent.board.filter((c) => c.uuid !== card.uuid), card)
         }
 
         window.nextJob()

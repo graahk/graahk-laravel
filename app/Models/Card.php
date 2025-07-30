@@ -11,6 +11,7 @@ use App\Enums\Tribe;
 use App\Enums\Trigger;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class Card extends Model
@@ -18,6 +19,7 @@ class Card extends Model
     protected $fillable = [
         'name',
         'attachment_id',
+        'artist_id',
         'type',
         'cost',
         'power',
@@ -38,9 +40,18 @@ class Card extends Model
         'entrance_animation' => 'array',
     ];
 
+    public $with = [
+        'attachment',
+    ];
+
     public function attachment()
     {
         return $this->belongsTo(Attachment::class);
+    }
+
+    public function artist()
+    {
+        return $this->belongsTo(Artist::class);
     }
 
     public function sets()
@@ -153,15 +164,31 @@ class Card extends Model
 
     public function getLevel(null | User $user = null): int
     {
-        $user = $user?->id ?? auth()->id();
+        // return 1;
+        // return 2;
+        // return 3;
+        // return 4;
 
-        $experience = $this->experience->where('id', $user)->first()
-            ?->pivot->experience;
+        $user ??= auth()->user();
 
-        if ($experience >= 3000) return 4;
-        elseif ($experience >= 2000) return 3;
-        elseif ($experience >= 1000) return 2;
-        else return 1;
+        return Cache::rememberForever("cards-level-{$this->id}-{$user?->id}", function () use ($user) {
+            $user = $user?->id ?? auth()->id();
+
+            $experience = $this->experience->where('id', $user)->first()
+                ?->pivot->experience;
+
+            if ($experience >= 3000) return 4;
+            elseif ($experience >= 1500) return 3;
+            elseif ($experience >= 500) return 2;
+            else return 1;
+        });
+    }
+
+    public static function getName(int $id): string
+    {
+        return Cache::rememberForever("card-name-{$id}", function () use ($id) {
+            return static::find($id)->name;
+        });
     }
 
     public static function booted()
@@ -175,6 +202,8 @@ class Card extends Model
         });
 
         static::saving(function (Card $card) {
+            Cache::forget("card-name-{$card->id}");
+
             if ($card->type === CardType::RUSE) {
                 $card->power = null;
 

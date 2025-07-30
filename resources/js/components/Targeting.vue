@@ -12,6 +12,7 @@
 
 <script>
 import { Artifact } from '../helpers/entities/Artifact'
+import { CardHand } from '../helpers/entities/CardHand'
 import { Dude } from '../helpers/entities/Dude'
 import { Player } from '../helpers/entities/Player'
 import Card from './Card.vue'
@@ -90,11 +91,9 @@ export default {
         // Card in our hand
         this.aimer = target
 
-        let effectTarget = this.aimer.effects
-          .find((e) => window.requiresTarget.includes(e.target))
-          .target
+        let effectTarget = this.aimer.effects.find((e) => window.requiresTarget.includes(e.target))
 
-        switch (effectTarget) {
+        switch (effectTarget.target) {
           case 'target_anything':
             this.validTargets = [
               this.$parent.game.player,
@@ -102,32 +101,43 @@ export default {
               ...this.$parent.game.player.board,
               ...this.$parent.game.opponent.board,
             ]
-            break
-          case 'dude':
+            break;
+          case 'target_dude':
             this.validTargets = [
               ...this.$parent.game.player.board,
               ...this.$parent.game.opponent.board,
             ]
+            break;
+          case 'target_player':
+            this.validTargets = [
+              this.$parent.game.player,
+              this.$parent.game.opponent,
+            ]
             break
-          case 'dude_player':
-            this.validTargets = this.$parent.game.player.board
-            break
-          case 'dude_opponent':
-            this.validTargets = this.$parent.game.opponent.board
-            break
-          case 'hand_target':
+          case 'target_hand':
             this.validTargets = this.$parent.game.player.hand
             break
         }
 
-        // Might not be needed?
-        if (['dude', 'dude_player', 'dude_opponent'].includes(effectTarget)) {
-          this.validTargets = this.validTargets.filter((c) => c instanceof Dude)
-        }
+        this.validTargets = this.validTargets
+          .filter((c) => ! c instanceof Dude || ! c.keywords?.includes('ghostly') || c instanceof CardHand)
+          .filter((card) => {
+              if (! effectTarget.conditions || effectTarget.conditions.length === 0)
+                return true
 
-        if (! ['hand_target'].includes(effectTarget)) {
-          this.validTargets = this.validTargets.filter((c) => ! c instanceof Dude || ! c.keywords.includes('ghostly'))
-        }
+              return effectTarget.conditions.length === effectTarget.conditions.filter((condition) => {
+                switch (condition.condition) {
+                  case 'owner': return card.owner === (condition.owner === 'player' ? this.$parent.game.player.id : this.$parent.game.opponent.id)
+                  case 'not_self': return card.uuid !== target.uuid
+                  case 'tribe': return card.tribes.includes(condition.tribe)
+                  case 'not_tribe': return !card.tribes.includes(condition.tribe)
+                  case 'specific_card': return card.id == condition.card
+                  case 'has_keyword': return card.keywords.includes(condition.keyword)
+                }
+
+                return true
+              }).length
+          })
 
         this.effect = (() => {
           let cardKey = this.$parent.game.player.hand.indexOf(this.aimer)

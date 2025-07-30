@@ -5,13 +5,23 @@
       'flex-col-reverse': reverse,
     }"
   >
-    <div
-        class="avatar w-full pt-[100%] rounded-lg bg-cover bg-center transition-all duration-300"
-        v-bind:style="`background-image: url('${player.avatar}')`"
-        v-bind:class="{
-          'scale-105': player.glowing,
-        }"
-    ></div>
+    <div class="avatar w-full rounded-lg bg-cover bg-center transition-all duration-300 relative">
+      <img
+        v-for="(keyword, key) in player.keywords"
+        v-bind:key="key"
+        v-bind:src="`/images/visual-effects/player__${keyword}.png`"
+        class="absolute inset-0 w-full z-10"
+        v-bind:class="`visual-effect-${keyword}`"
+      />
+
+      <div
+          class="avatar w-full pt-[100%] rounded-lg bg-cover bg-center transition-all duration-300 relative"
+          v-bind:style="`background-image: url('${player.avatar}')`"
+          v-bind:class="{
+            'scale-105': player.glowing,
+          }"
+      ></div>
+    </div>
 
     <!-- <div class="absolute opacity-50">
       <span v-text="player.uuid" />

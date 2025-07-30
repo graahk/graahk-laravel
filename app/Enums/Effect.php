@@ -18,12 +18,15 @@ enum Effect: string implements HasLabel
 
     case DRAW_CARDS = 'draw_cards';
     case DEAL_DAMAGE = 'deal_damage';
+    case DEAL_DAMAGE_TO_PLAYER = 'deal_damage_to_player';
+    case DEAL_DAMAGE_TO_OPPONENT = 'deal_damage_to_opponent';
     case SPAWN_TOKEN = 'spawn_token';
     case SPAWN_DUDE = 'spawn_dude';
     case GAIN_ENERGY = 'gain_energy';
     case BUFF_DUDE = 'buff_dude';
     case HEAL = 'heal';
     case DUPLICATE = 'duplicate';
+    case DUPLICATE_TO_PLAYER = 'duplicate_to_player';
     case KILL = 'kill';
     case RESET_HEALTH = 'reset_health';
     case STUN = 'stun';
@@ -39,6 +42,8 @@ enum Effect: string implements HasLabel
     case GIVE_KEYWORD = 'give_keyword';
     case REDUCE_COST = 'reduce_cost';
     case ADD_MAXIMUM_POWER = 'add_maximum_power';
+    case ACTIVATE = 'activate';
+    case END_TURN = 'end_turn';
 
     // Artifact effects
     case GAIN_CHARGE = 'gain_charge';
@@ -48,12 +53,15 @@ enum Effect: string implements HasLabel
         return match ($this) {
             self::DRAW_CARDS => 'Draw cards',
             self::DEAL_DAMAGE => 'Deal damage',
+            self::DEAL_DAMAGE_TO_OPPONENT => 'Deal damage to opponent (equal to targets power)',
+            self::DEAL_DAMAGE_TO_PLAYER => 'Deal damage to player (equal to targets power)',
             self::SPAWN_TOKEN => 'Spawn token',
             self::SPAWN_DUDE => 'Spawn dude',
             self::BUFF_DUDE => 'Buff dude',
             self::HEAL => 'Heal',
             self::GAIN_ENERGY => 'Gain energy',
             self::DUPLICATE => 'Duplicate',
+            self::DUPLICATE_TO_PLAYER => 'Duplicate for player',
             self::KILL => 'Kill',
             self::RESET_HEALTH => 'Reset health',
             self::STUN => 'Stun',
@@ -69,6 +77,8 @@ enum Effect: string implements HasLabel
             self::GIVE_KEYWORD => 'Give keyword',
             self::REDUCE_COST => 'Reduce card cost',
             self::ADD_MAXIMUM_POWER => 'Add maximum power',
+            self::ACTIVATE => 'Activate special effect',
+            self::END_TURN => 'End turn',
 
             // Artifact effects
             self::GAIN_CHARGE => 'Gain charge',
@@ -108,6 +118,8 @@ enum Effect: string implements HasLabel
                     'web' => 'Web',
                 ])->required(),
             ],
+            self::DEAL_DAMAGE_TO_OPPONENT,
+            self::DEAL_DAMAGE_TO_PLAYER,
             self::DUPLICATE,
             self::KILL,
             self::RESET_HEALTH,
@@ -116,8 +128,19 @@ enum Effect: string implements HasLabel
             self::UNNAMED_ONE,
             self::READY_DUDE,
             self::SHUFFLE_INTO_DECK,
-            self::SHUFFLE_INTO_OPPONENT_DECK => [
+            self::SHUFFLE_INTO_OPPONENT_DECK,
+            self::ACTIVATE,
+            self::END_TURN => [
                 $targetField,
+            ],
+            self::DUPLICATE_TO_PLAYER => [
+                $targetField,
+                Select::make('player')
+                    ->required()
+                    ->options([
+                        'player' => 'Player (self)',
+                        'opponent' => 'Opponent',
+                    ]),
             ],
             self::DRAW_SPECIFIC_COST => [
                 ...Amount::fields(),
@@ -139,9 +162,6 @@ enum Effect: string implements HasLabel
                 Select::make('dude')
                     ->options(fn () => Card::where('type', CardType::DUDE)->orderBy('name')->pluck('name', 'id'))
                     ->required(),
-            ],
-            self::GAIN_CHARGE => [
-                ...Amount::fields(),
             ],
             self::GIVE_KEYWORD => [
                 $targetField,
@@ -186,17 +206,24 @@ enum Effect: string implements HasLabel
                 $target,
                 $amountExtra,
             ],
+            self::DEAL_DAMAGE_TO_OPPONENT,
+            self::DEAL_DAMAGE_TO_PLAYER => [
+                "deal this dudes damage to",
+                $target,
+                $amountExtra,
+            ],
             self::SPAWN_TOKEN => [
                 'spawn',
                 $parameters['amount'],
-                Str::plural(Card::find($parameters['token'])->name, $parameters['amount']),
+                '<i>' . Str::plural(Card::getName($parameters['token']), $parameters['amount']) . '</i>',
+                Str::plural('token', $parameters['amount']),
                 $amountExtra,
                 Target::from($parameters['target']) === Target::OPPONENT ? 'for your opponent' : '',
             ],
             self::SPAWN_DUDE => [
                 'spawn',
                 $parameters['amount'],
-                Str::plural(Card::find($parameters['dude'])->name, $parameters['amount']),
+                '<i>' . Str::plural(Card::getName($parameters['dude']), $parameters['amount']) . '</i>',
                 $amountExtra,
                 Target::from($parameters['target']) === Target::OPPONENT ? 'for your opponent' : '',
             ],
@@ -239,28 +266,29 @@ enum Effect: string implements HasLabel
                 "draw {$parameters['amount']}",
                 Str::plural('card', $parameters['amount']),
                 $amountExtra,
-                'that cost',
+                'that costs',
                 match ($parameters['operator']) {
                     'greater than equal' => 'greater than or equal to',
                     'less than equal' => 'less than or equal to',
                     'equal to' => '',
                 },
                 $parameters['cost'],
+                'from your deck',
             ],
             self::DRAW_SPECIFIC_TRIBE => [
                 "draw {$parameters['amount']}",
+                '<i>' . Tribe::from($parameters['tribe'])->toText() . '</i>',
                 Str::plural('card', $parameters['amount']),
                 $amountExtra,
-                'of the <i>',
-                Tribe::from($parameters['tribe'])->toText(),
-                '</i> tribe'
+                'from your deck',
             ],
             self::DRAW_SPECIFIC_DUDE => [
                 "draw {$parameters['amount']}",
                 Str::plural('card', $parameters['amount']),
                 $amountExtra,
                 'named',
-                Card::find($parameters['dude'])->name,
+                '<i>' . Card::getName($parameters['dude']) . '</i>',
+                'from your deck',
             ],
             self::SILENCE => [
                 'stifle',
@@ -312,6 +340,13 @@ enum Effect: string implements HasLabel
                 $parameters['amount'],
                 $amountExtra,
                 'maximum power',
+            ],
+            self::ACTIVATE => [
+                '<strong>activate</strong>',
+                $target,
+            ],
+            self::END_TURN => [
+                'end your turn',
             ],
         })
             ->filter()

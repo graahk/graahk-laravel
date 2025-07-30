@@ -44,27 +44,33 @@ class CardController extends Controller
             ];
         }
 
-        collect($card->effects)->filter(fn ($e) => in_array($e['effect'], ['silence']))->each(function () {
-            $this->extras['silence'] = [
-                'name' => 'Stifle',
-                'text' => 'A stifled dude will lose all effects and keywords'
-            ];
-        });
+        collect($card->effects)
+            ->filter(fn ($e) => in_array($e['effect'], ['silence']))
+            ->each(function () {
+                $this->extras['silence'] = [
+                    'name' => 'Stifle',
+                    'text' => 'A stifled dude will lose all effects and keywords'
+                ];
+            });
 
-        collect($card->effects)->filter(fn ($e) => in_array($e['effect'], ['stun']))->each(function () {
-            $this->extras['stun'] = [
-                'name' => 'Stun',
-                'text' => 'A stunned dude will not be able to attack next turn'
-            ];
-        });
+        collect($card->effects)
+            ->filter(fn ($e) => in_array($e['effect'], ['stun']))
+            ->each(function () {
+                $this->extras['stun'] = [
+                    'name' => 'Stun',
+                    'text' => 'A stunned dude will not be able to attack next turn'
+                ];
+            });
 
-        collect($card->effects)->filter(fn ($e) => in_array($e['effect'], ['give_keyword']))->each(function ($effect) {
-            $keyword = Keyword::from($effect['keyword']);
-            $this->extras[$keyword->value] = [
-                'name' => $keyword->toText(),
-                'text' => $keyword->description(),
-            ];
-        });
+        collect($card->effects)
+            ->filter(fn ($e) => in_array($e['effect'], ['give_keyword']))
+            ->each(function ($effect) {
+                $keyword = Keyword::from($effect['keyword']);
+                $this->extras[$keyword->value] = [
+                    'name' => $keyword->toText(),
+                    'text' => $keyword->description(),
+                ];
+            });
 
         collect($card->effects)->filter(fn ($e) => in_array($e['effect'], [
             'spawn_token',
@@ -88,5 +94,17 @@ class CardController extends Controller
                 $this->getExtras($card);
             }
         });
+
+        collect($card->effects)
+            ->pluck('conditions')
+            ->flatten(1)
+            ->filter(fn ($e) => in_array($e['condition'] ?? null, ['has_keyword']))
+            ->each(function ($effect) {
+                $keyword = Keyword::from($effect['keyword']);
+                $this->extras[$keyword->value] = [
+                    'name' => $keyword->toText(),
+                    'text' => $keyword->description(),
+                ];
+            });
     }
 }

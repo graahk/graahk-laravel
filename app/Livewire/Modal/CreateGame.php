@@ -20,7 +20,7 @@ class CreateGame extends Modal
     {
         $this->decks = auth()->user()
             ->decks
-            ->filter(fn (Deck $deck) => $deck->isLegal())
+            ->filter(fn (Deck $deck) => $deck->isLegal() && ! $deck->weeklyEnded())
             ->sortByDesc('updated_at');
 
         $this->fields['deck_id'] = $this->decks->first()->id ?? null;
@@ -41,12 +41,14 @@ class CreateGame extends Modal
             'fields.deck_id.required' => 'Please select a deck.',
         ]);
 
+        $deck = Deck::find($this->fields['deck_id']);
+
         $game = Game::create([
             'name' => $this->fields['name'],
             'user_id_1' => auth()->id(),
             'data' => [
                 'decks' => [
-                    auth()->id() => $this->fields['deck_id'],
+                    auth()->id() => $deck->id,
                 ],
             ],
         ]);

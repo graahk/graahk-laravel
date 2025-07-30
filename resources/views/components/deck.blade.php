@@ -5,13 +5,21 @@
         hover:scale-105 transition-all duration-200
     ']) }}
 >
-    @if (! $deck->isLegal())
+    @if ($deck->weeklyEnded())
         <div class="
             absolute top-6 left-6 text-error flex items-center gap-3
             py-2 pr-4 pl-3 rounded-lg bg-opacity-75 bg-black
         ">
             <x-heroicon-o-exclamation-triangle class="w-6 h-6" />
-            Not a legal deck
+            Weekly pack has ended
+        </div>
+    @elseif (! $deck->isLegal())
+        <div class="
+            absolute top-6 left-6 text-error flex items-center gap-3
+            py-2 pr-4 pl-3 rounded-lg bg-opacity-75 bg-black
+        ">
+            <x-heroicon-o-exclamation-triangle class="w-6 h-6" />
+            Not enough cards
         </div>
     @endif
 

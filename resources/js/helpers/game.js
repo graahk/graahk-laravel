@@ -3,6 +3,7 @@ import { PlayDude } from './events/PlayDude'
 import { Mulliganed } from './events/Mulliganed'
 
 import { Player } from './entities/Player'
+import { Artifact } from './entities/Artifact'
 import { Attack } from './events/Attack'
 import { HandleAnimation } from './entities/animations/HandleAnimation'
 
@@ -19,16 +20,19 @@ export class Game {
     this.eventFired = false
 
     this.completed = _vue.gameState.completed || false
-    this.afterGameUpgrades = reactive(_vue.gameState.afterGameUpgrades || [])
+    this.afterGameUpgrades = reactive(_vue.gameState.after_game_upgrades || [])
 
     this.player = reactive(new Player(_vue.gameState.player))
     this.opponent = reactive(new Player(_vue.gameState.opponent))
+    this.artifact = _vue.gameState.artifact ? reactive(new Artifact(_vue.gameState.artifact)) : null
 
     this.currentPlayer = (_vue.gameState.current_player === this.player.id ? this.player : this.opponent)
     this.currentOpponent = (_vue.gameState.current_player === this.player.id ? this.opponent : this.player)
 
     // Triggers
     this.pusher.bind('event', (data) => {
+      window._target = data.data._target || null
+
       switch (data.event) {
         case 'mulliganed': (new Mulliganed).resolve(this, data); break
         case 'end_turn': (new SwapTurn).resolve(this, data); break
@@ -52,12 +56,15 @@ export class Game {
   event (event, data = {}) {
     if (this.eventFired) return
 
+    data._target = this._vue.getTarget()?.uuid || null
+
     window.axios.post(`/api/games/${this.gameId}/event`, { event: event, data: data })
     this.eventFired = true
   }
 
   getTargets (type, owner, target = null, data = []) {
     let player, opponent
+
     if (owner) {
       player = (owner.owner === this.currentPlayer.id ? this.currentPlayer : this.currentOpponent)
       opponent = (owner.owner === this.currentPlayer.id ? this.currentOpponent : this.currentPlayer)
@@ -72,36 +79,38 @@ export class Game {
     switch (type) {
       case 'player': targets = [player]; break
       case 'opponent': targets = [opponent]; break
-      case 'dude': targets = [this._vue.getTarget()]; break
-      case 'dude_player': targets = [this._vue.getTarget()]; break
-      case 'dude_opponent': targets = [this._vue.getTarget()]; break
-      case 'target_anything': targets = [this._vue.getTarget()]; break
-      case 'all_players': targets = [player, opponent]; break
-      case 'all_player_dudes': targets = player.board; break
-      case 'all_other_player_dudes': targets = player.board.filter((c) => c.uuid !== owner.uuid); break
-      case 'all_opponent_dudes': targets = opponent.board; break
+      case 'target_dude': targets = [target]; break
+      case 'target_anything': targets = [target]; break
+      case 'target_hand': targets = [target]; break
+      case 'target_player': targets = [target]; break
+      case 'all': targets = [...player.board, ...opponent.board, player, opponent]; break
       case 'all_dudes': targets = [...player.board, ...opponent.board]; break
-      case 'all_other_dudes': targets = [...player.board, ...opponent.board].filter((c) => c.uuid !== owner.uuid); break
-      case 'everything': targets = [...player.board, ...opponent.board, player, opponent]; break
+      case 'all_hand_deck': targets = [...player.hand, ...player.deck]; break
+      case 'all_players': targets = [player, opponent]; break
+      case 'all_hand': targets = player.hand; break
+      case 'source': targets = [target]; break
       case 'itself': targets = [owner]; break
       case 'from_uuid': targets = [...player.board, ...opponent.board, player, opponent, ...player.hand].filter((c) => c.uuid === target); break
-      case 'all_tribe': targets = [...player.board, ...opponent.board].filter((c) => c.tribes.includes(data.target_tribe)); break
-      case 'all_tribe_but_self': targets = [...player.board, ...opponent.board].filter((c) => c.tribes.includes(data.target_tribe) && c.uuid !== owner.uuid); break
-      case 'all_player_tribe': targets = player.board.filter((c) => c.tribes.includes(data.target_tribe)); break
-      case 'all_player_tribe_but_self': targets = player.board.filter((c) => c.tribes.includes(data.target_tribe) && c.uuid !== owner.uuid); break
-      case 'all_opponent_tribe': targets = opponent.board.filter((c) => c.tribes.includes(data.target_tribe)); break
-      case 'hand_all': targets = player.hand; break
-      case 'hand_target': targets = [this._vue.getTarget()]; break
-      case 'source': targets = [owner]; break
       default: window.errorToast(`No target type ${type}`);
     }
 
-    switch (type) {
-      case 'artifact': targets = targets.filter((card) => card.type === 'artifact'); break
-      default: targets = targets.filter((card) => card.type !== 'artifact')
-    }
+    // Apply conditionals
+    (data.conditions || []).forEach((condition) => {
+      targets = targets.filter((target) => {
+        switch (condition.condition) {
+          case 'not_self': return target.uuid !== owner.uuid
+          case 'tribe': return target.tribes.includes(condition.tribe)
+          case 'not_tribe': return !target.tribes.includes(condition.tribe)
+          case 'specific_card': return target.id == condition.card
+          case 'has_keyword': return target.keywords.includes(condition.keyword)
+          case 'owner': return target.owner === ((condition.owner === 'player') ? player.id : opponent.id)
+        }
 
-    return targets
+        return true
+      })
+    })
+
+    return targets.filter((target) => target !== null)
   }
 
   getAmount (data, source) {
@@ -131,7 +140,10 @@ export class Game {
       case 'for_each_energy_player': amount = player.energy * multiplier; break
       case 'for_each_energy_opponent': amount = opponent.energy * multiplier; break
       case 'for_each_y_power': amount = Math.floor(source.power / data.amount_y) * multiplier; break
-      default: window.errorToast(`No amount special type ${type}`);
+      case 'for_each_card_in_hand': amount = player.hand.length * multiplier; break
+      case 'for_each_card_in_opponent_hand': amount = opponent.hand.length * multiplier; break
+      case 'for_each_artifact_charge': amount = (this.artifact ? this.artifact.charges : 0) * multiplier; break
+      default: window.errorToast(`No amount special type ${data.amount_special}`);
     }
 
     return amount
@@ -139,38 +151,65 @@ export class Game {
 
   // Check for any triggers after an effect or event has fired
   // This only pushes to the queue, it doesn't actually run the effect yet
-  async checkTriggers (trigger, checks = false, targetedTargets = false, usingTarget = false) {
+  async checkTriggers (trigger, cardsToCheck, causer = null) {
     window.game._vue.queue(() => {
       let targets
-      (checks || this.getTargets('all_dudes')).forEach((dude) => {
-        dude.effects.filter((e) => e.trigger === trigger).reverse().forEach(async (effect) => {
-          // Only use targeted targets if it uses them
-          targets = null
-          if (usingTarget || window.requiresTarget.includes(effect.target)) {
-            targets = targetedTargets
-          }
 
-          this.effect(
-            effect.effect,
-            effect,
-            targets || this.getTargets(effect.target, dude, null, effect),
-            dude
-          )
+      cardsToCheck
+        .filter((card) => card)
+        .forEach((dude) => {
+          (dude.effects || []).filter((e) => e.trigger === trigger).reverse().forEach(async (effect) => {
+            targets = (window.requiresTarget.includes(effect.target))
+              ? this._vue.getTarget() || causer // Only use targeted targets if it uses them
+              : this.getTargets(effect.target, dude, causer, effect)
+
+            if (! (targets instanceof Array)) {
+              targets = [targets]
+            }
+
+            this.effect(effect, targets, dude)
+          })
         })
-      })
 
       window.nextJob()
     })
   }
 
   // Do something
-  effect (effect, data, targets, source = null) {
+  effect (effect, targets, source = null) {
     // Make sure to include the .nextJob() in the event itself
     window.game._vue.queue(async () => {
+      let data = effect
+      effect = effect.effect
+
+      targets = targets.filter((t) => ! [null, undefined].includes(t))
+
       // Refetch the targets (see Clyde + Mirror)
-      // if (data.target) {
-      //   targets = this.getTargets(data.target, source, null, data)
-      // }
+      if (data.target && window.shouldRefetchTargets.includes(data.target)) {
+        targets = this.getTargets(data.target, source, false, data)
+      }
+
+      if (! window.game.areCurrentPlayer() && window._target && targets.length === 0) {
+        targets.push(...this.getTargets('from_uuid', null, window._target))
+      }
+
+      // Do conditional checks
+      targets = targets.filter((target) => {
+        if ([null, undefined].includes(target)) return false
+
+        if (! data.trigger_conditions) return true
+
+        return data.trigger_conditions.every((condition) => {
+          switch (condition.condition) {
+            case 'tribe': return target.tribes.includes(condition.tribe)
+            case 'not_tribe': return !target.tribes.includes(condition.tribe)
+            case 'not_self': return target.uuid !== source.uuid
+            case 'owner': return target.owner === source.owner
+            case 'specific_card': return target.id == condition.card
+            case 'has_keyword': return target.keywords.includes(condition.keyword)
+          }
+        })
+      })
 
       if (targets.length === 0) {
         return window.nextJob()
@@ -195,9 +234,9 @@ export class Game {
     let playerList = this.currentPlayer.causalityList()
     playerList.forEach((death) => {
       if (death.type === 'dude') {
-        this.checkTriggers('dude_dies', [...this.currentPlayer.board, ...this.currentOpponent.board])
-        this.checkTriggers('player_dude_dies', this.currentPlayer.board)
-        this.checkTriggers('opponent_dude_dies', this.currentOpponent.board)
+        this.checkTriggers('dude_dies', [this.artifact, ...this.currentPlayer.board, ...this.currentOpponent.board], [death])
+        this.checkTriggers('player_dude_dies', this.currentPlayer.board, [death])
+        this.checkTriggers('opponent_dude_dies', this.currentOpponent.board, [death])
       }
 
       this.checkTriggers('leave_field', [death])
@@ -206,12 +245,12 @@ export class Game {
     let opponentList = this.currentOpponent.causalityList()
     opponentList.forEach((death) => {
       if (death.type === 'dude') {
-        this.checkTriggers('dude_dies', [...this.currentPlayer.board, ...this.currentOpponent.board])
-        this.checkTriggers('player_dude_dies', this.currentOpponent.board)
-        this.checkTriggers('opponent_dude_dies', this.currentPlayer.board)
+        this.checkTriggers('dude_dies', [this.artifact, ...this.currentPlayer.board, ...this.currentOpponent.board], [death])
+        this.checkTriggers('player_dude_dies', this.currentOpponent.board, [death])
+        this.checkTriggers('opponent_dude_dies', this.currentPlayer.board, [death])
       }
 
-      this.checkTriggers('leave_field', [death])
+      this.checkTriggers('leave_field', [death], [death])
     })
 
     this.updateGameState()
@@ -235,9 +274,9 @@ export class Game {
   }
 
   isHealingReversed () {
-    return [...this.player.board, ...this.opponent.board].some((dude) =>
-      dude.effects.some((effect) => effect.trigger === 'healing_reversed')
-    )
+    return [this.artifact, ...this.player.board, ...this.opponent.board]
+      .filter((dude) => dude && dude.effects)
+      .some((dude) => dude.effects.some((effect) => effect.trigger === 'healing_reversed'))
   }
 
   checkGameOver () {
@@ -247,7 +286,12 @@ export class Game {
       this.completed = true
       this._vue.gameCompleted = true
 
-      window.axios.put(`/api/games/${this.gameId}/finish`, {
+      let winner = (this.player.power > 0 ? this.player.id : this.opponent.id)
+      if (this.player.power <= 0 && this.opponent.power <= 0) {
+        winner = 0
+      }
+
+      window.axios.put(`/api/games/${this.gameId}/finish/${winner}`, {
         players: [
           { id: this.player.id, power: this.player.power },
           { id: this.opponent.id, power: this.opponent.power },
@@ -285,17 +329,17 @@ export class Game {
 
   // Send data to the server to update the game state
   updateGameState () {
-    // window.setTimeout(() => {
-    //   let gameState = {}
-    //   gameState['completed'] = this.completed
-    //   gameState['afterGameUpgrades'] = this.afterGameUpgrades
-    //   gameState['current_player'] = this.currentPlayer.id
-    //   gameState[`player_${this.player.id}`] = this.player
-    //   gameState[`player_${this.opponent.id}`] = this.opponent
+    window.setTimeout(() => {
+      let gameState = {}
+      gameState['completed'] = this.completed
+      gameState['after_game_upgrades'] = this.afterGameUpgrades
+      gameState['current_player'] = this.currentPlayer.id
+      gameState[`player_${this.player.id}`] = this.player
+      gameState[`player_${this.opponent.id}`] = this.opponent
 
-    //   window.axios.put(`/api/games/${this._vue.gameId}`, {
-    //     gameState: gameState,
-    //   })
-    // }, 100)
+      window.axios.put(`/api/games/${this._vue.gameId}`, {
+        gameState: gameState,
+      })
+    }, 100)
   }
 }

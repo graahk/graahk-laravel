@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Modal;
 
+use App\Enums\Format;
 use App\Models\Card;
 use App\Models\Deck;
 use App\Models\Game;
 use App\Models\User;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -22,8 +24,13 @@ class JoinGame extends Modal
         $this->game = Game::find($params['gameId'] ?? null);
         $this->decks = auth()->user()
             ->decks
-            ->filter(fn (Deck $deck) => $deck->format === $this->game->format())
-            ->filter(fn (Deck $deck) => $deck->isLegal())
+            ->when($this->game->format() === Format::STANDARD, function (Collection $decks) {
+                return $decks->filter(fn (Deck $deck) => in_array($deck->format, [Format::STANDARD, Format::WEEKLY]));
+            })
+            ->when($this->game->format() === Format::WEEKLY, function (Collection $decks) {
+                return $decks->filter(fn (Deck $deck) => in_array($deck->format, [Format::WEEKLY]));
+            })
+            ->filter(fn (Deck $deck) => $deck->isLegal() && ! $deck->weeklyEnded())
             ->sortByDesc('updated_at');
 
         $this->fields['deck_id'] = $this->decks->first()->id ?? null;
@@ -52,8 +59,14 @@ class JoinGame extends Modal
         $gameData['decks'][$player2] = $this->fields['deck_id'];
         $gameData['current_player'] = rand(0, 1) ? $player2 : $player1;
 
+        $deck = Deck::find(Arr::first($gameData['decks']));
+        $gameData['artifact'] = $deck->weeklyPack?->artifact->toJavaScript() ?? null;
+
         foreach ($gameData['decks'] as $player => $deck) {
             $user = User::find($player);
+
+            $deck = Deck::find($deck);
+            $deck->touch();
 
             $gameData["player_{$player}"] = [
                 'id' => $user->id,
@@ -66,7 +79,7 @@ class JoinGame extends Modal
                 'energy' => 0,
                 'power' => 2000,
                 'originalPower' => 2000,
-                'deck' => Deck::find($deck)
+                'deck' => $deck
                     ->idList()
                     ->shuffle()
                     ->map(fn (int $id) => Card::find($id)->toJavaScript($user))

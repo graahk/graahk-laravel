@@ -42,6 +42,13 @@
           :ref="'player-' + game.opponent.uuid"
         />
 
+        <Artifact
+          v-if="game.artifact"
+          :artifact="game.artifact"
+          v-on:click="target(game.artifact)"
+          ref="game-artifact"
+        />
+
         <Player
           :player="game.player"
           :reverse="true"
@@ -157,6 +164,7 @@
 
 <script>
 import Card from './Card.vue'
+import Artifact from './Artifact.vue'
 import Board from './Board.vue'
 import CardBoard from './CardBoard.vue'
 import Player from './Player.vue'
@@ -175,6 +183,7 @@ export default {
   name: 'game',
   components: {
     Card,
+    Artifact,
     Board,
     CardBoard,
     Player,
@@ -229,6 +238,7 @@ export default {
         this.$refs.targeting.target(card)
       } else {
         const requiresTarget = card.effects.map((c) => c.target).some((t) => window.requiresTarget.includes(t))
+          && card.effects.map((c) => c.trigger).some((t) => window.triggerRequiresTarget.includes(t))
 
         if (! requiresTarget) {
           return this.game.playCard(cardKey, data)
@@ -238,7 +248,7 @@ export default {
       }
     },
     getTarget () {
-      return this.$refs.targeting.victim
+      return this.$refs.targeting?.victim || false
     },
     endTurn () {
       if (! this.canDoAnything() || this.areTargeting()) return

@@ -4,6 +4,7 @@ namespace App\Livewire\Modal;
 
 use App\Enums\Format;
 use App\Models\Deck;
+use App\Models\WeeklyPack;
 
 class CreateDeck extends Modal
 {
@@ -21,6 +22,7 @@ class CreateDeck extends Modal
         $deck = Deck::create([
             'name' => "New {$format->name()} Deck",
             'format' => $format->value,
+            'weekly_pack_id' => ($format === Format::WEEKLY ? WeeklyPack::latest()->first()->id : null),
             'user_id' => auth()->id(),
         ]);
 

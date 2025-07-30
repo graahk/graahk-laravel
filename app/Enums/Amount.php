@@ -22,6 +22,9 @@ enum Amount: string implements HasLabel
 
     case FOR_EACH_ARTIFACT_CHARGE = 'for_each_artifact_charge';
 
+    case FOR_EACH_CARD_IN_HAND = 'for_each_card_in_hand';
+    case FOR_EACH_CARD_IN_OPPONENT_HAND = 'for_each_card_in_opponent_hand';
+
     public function getLabel(): ?string
     {
         return match ($this) {
@@ -36,6 +39,9 @@ enum Amount: string implements HasLabel
             self::FOR_EACH_Y_POWER => 'For each Y power',
 
             self::FOR_EACH_ARTIFACT_CHARGE => 'For each artifact charge',
+
+            self::FOR_EACH_CARD_IN_HAND => 'For each card in hand',
+            self::FOR_EACH_CARD_IN_OPPONENT_HAND => 'For each card in opponent hand',
         };
     }
 
@@ -53,6 +59,9 @@ enum Amount: string implements HasLabel
             self::FOR_EACH_Y_POWER => 'for each {Y} power this dude has',
 
             self::FOR_EACH_ARTIFACT_CHARGE => 'for each charge on this artifact',
+
+            self::FOR_EACH_CARD_IN_HAND => 'for each card in your hand',
+            self::FOR_EACH_CARD_IN_OPPONENT_HAND => 'for each card in opponent hand',
         };
     }
 

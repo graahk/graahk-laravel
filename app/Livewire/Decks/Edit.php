@@ -3,9 +3,7 @@
 namespace App\Livewire\Decks;
 
 use App\CardCache;
-use App\Enums;
 use App\Enums\CardType;
-use App\Enums\Effect;
 use App\Enums\Format;
 use App\Enums\Keyword;
 use App\Enums\Tribe;
@@ -23,6 +21,8 @@ class Edit extends Component
     use CanToast;
 
     public bool $loading = true;
+
+    public bool $shownWeeklyEndedWarning = false;
 
     public Deck $deck;
 
@@ -77,24 +77,38 @@ class Edit extends Component
         $cards = CardCache::get();
         $format = $this->deck->format;
 
-        if ($format === Format::WEEKLY) {
-            $cards = $cards->filter(fn (array $card) => in_array($card['id'], WeeklyPack::current()->cards));
+        if (in_array($format, [Format::WEEKLY, Format::WEEKLY_ENDED])) {
+            $cards = $cards->filter(fn (array $card) => in_array(
+                $card['id'],
+                WeeklyPack::find($this->deck->weekly_pack_id)->cards
+            ));
         }
 
         // Set the allowed filters
         $this->filterOptions = collect([
-            'sets' => Set::pluck('name', 'id')->sort(),
+            'sets' => Set::where('artifacts_set', false)->pluck('name', 'id')->sort(),
             'keywords' => $cards->pluck('keywords')->flatten()->unique()->sort()->mapWithKeys(fn ($item) => [$item => Keyword::from($item)->getLabel()]),
             'tribes' => $cards->pluck('tribes')->flatten()->unique()->sort()->mapWithKeys(fn ($item) => [$item => Tribe::from($item)->getLabel()]),
-            'cardTypes' => $cards->pluck('type')->unique()->sort()->mapWithKeys(fn ($item) => [$item => CardType::from($item)->getLabel()]),
+            'cardTypes' => CardType::filterOptions(),
         ]);
+
+        if (in_array($format, [Format::STANDARD])) {
+            $sets = Set::where('beta', false)
+                ->where('artifacts_set', false)
+                ->pluck('id');
+
+            $cards = $cards->filter(fn (array $card) => collect($card['sets'])->intersect($sets)->isNotEmpty());
+            $this->filterOptions['sets'] = $this->filterOptions['sets']
+                ->filter(fn ($i, $key) => in_array($key, $sets->toArray()));
+        }
+
+        if (in_array($format, [Format::WEEKLY, Format::WEEKLY_ENDED])) {
+            $this->filterOptions['sets'] = $this->filterOptions['sets']
+                ->filter(fn ($i, $key) => $cards->pluck('sets')->flatten()->unique()->contains($key));
+        }
 
         $cards = $cards
             ->reject(fn (array $card) => $card['type'] === CardType::TOKEN->value)
-            ->sortBy([
-                [...explode('-', $this->filters->get('sort'))],
-                ['name', 'asc'],
-            ])
             ->when($this->filters->get('set'), fn ($collection, $set) => $collection->filter(fn ($card) => in_array($set, $card['sets'])))
             ->when($this->filters->get('keyword'), fn ($collection, $keyword) => $collection->filter(fn ($card) => in_array($keyword, $card['keywords'])))
             ->when($this->filters->get('tribe'), fn ($collection, $tribe) => $collection->filter(fn ($card) => in_array($tribe, $card['tribes'])))
@@ -109,8 +123,18 @@ class Edit extends Component
                 ));
             });
 
+        if ($format === Format::WEEKLY_ENDED && ! $this->shownWeeklyEndedWarning) {
+            $this->shownWeeklyEndedWarning = true;
+            $this->dispatch('openModal', 'weekly-ended', ['deckId' => $this->deck->id]);
+        }
+
         return view('livewire.decks.edit', [
-            'cards' => Card::find($cards->pluck('id')),
+            'format' => $this->deck->format,
+            'cards' => Card::with('experience')
+                ->whereIn('id', $cards->pluck('id'))
+                ->orderBy(...explode('-', $this->filters->get('sort')))
+                ->orderBy('name')
+                ->get(),
             'cardList' => CardCache::get(),
             'cardTypes' => $this->filterOptions->get('cardTypes'),
             'sets' => $this->filterOptions->get('sets'),

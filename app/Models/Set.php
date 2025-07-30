@@ -14,10 +14,12 @@ class Set extends Model
         'attachment_id',
         'icon_id',
         'beta',
+        'artifacts_set',
     ];
 
     protected $casts = [
         'beta' => 'boolean',
+        'artifacts_set' => 'boolean',
     ];
 
     public function attachment()

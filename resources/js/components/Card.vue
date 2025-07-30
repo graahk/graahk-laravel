@@ -15,6 +15,7 @@
         'hover:scale-[1.3] hover:z-[100] hover:translate-y-[-40%] transition-all duration-200 ease-in-out': hoverState,
       }"
       v-on:click="playCard(cardKey)"
+      v-on:mouseenter="checkUpdatedPower()"
   >
       <div class="absolute inset-0 rounded-xl overflow-hidden">
         <div v-if="card.level >= 4" class="z-[-1] rounded-xl overflow-hidden animate-foil"></div>
@@ -39,7 +40,7 @@
       <span
         v-text="card.tribesText"
         v-bind:class="{
-            'absolute w-[80%] text-lg': true,
+            'tribes absolute w-[80%] text-lg': true,
             'bottom-[36.5%] left-[8%]': (card.level <= 1),
             'bottom-[5.5%] left-[36.5%]': (card.level >= 2),
             'left-[8%]': card.type === 'ruse'
@@ -71,8 +72,6 @@
 </template>
 
 <script>
-import { reactive } from 'vue'
-
 export default {
   name: 'card',
   props: {
@@ -108,14 +107,17 @@ export default {
 
       this.$emit('play-card', cardKey)
     },
+    checkUpdatedPower () {
+      const effects = this.card.effects.map((e) => e.effect)
+
+      if (effects.includes('unnamed_one')) {
+        this.updatedPower = parseInt(window.game.player.graveyard.length * 50)
+      }
+    }
   },
   computed: {
     power () {
-      const effects = this.card.effects.map((e) => e.effect)
-
-      if (! this.updatedPower && effects.includes('unnamed_one')) {
-        this.updatedPower = parseInt(window.game.player.graveyard.length * 50)
-      }
+      this.checkUpdatedPower()
 
       return this.card.power
     },

@@ -12,6 +12,10 @@ export class CardHand {
   }
 
   coords () {
+    if (! this.$el()) {
+      return { x: 0, y: 0 }
+    }
+
     return {
       x: this.$el().offsetLeft + (this.$el().offsetWidth / 2),
       y: this.$el().offsetTop + (this.$el().offsetHeight / 2),
@@ -32,6 +36,13 @@ export class CardHand {
       this.power += window.game.getAmount(data, source)
       new ActivatedAnimation({ target: source }).resolve()
     }
+
+    window.nextJob()
+  }
+  
+  async add_maximum_power (data) {
+    this.original.power += window.game.getAmount(data, this)
+    this.power = this.original.power
 
     window.nextJob()
   }

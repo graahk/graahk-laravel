@@ -1,12 +1,14 @@
 export class Artifact {
   constructor (card) {
+    this.charges = 0
+
     Object.entries(card).forEach(([key, value]) => {
       this[key] = value
     })
   }
 
   $el () {
-    return document.getElementById('artifact-' + this.uuid)
+    return document.getElementById('game-artifact-' + this.uuid)
   }
 
   coords () {
@@ -16,16 +18,8 @@ export class Artifact {
     }
   }
 
-  async activate () {
-
-  }
-
-  async deal_damage () {
-    this.power = Math.max(0, this.power - 1)
-  }
-
   async gain_charge (data, source) {
-    this.power += window.game.getAmount(data, source)
+    this.charges += window.game.getAmount(data, source)
 
     await timeout(500)
 

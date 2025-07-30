@@ -25,12 +25,21 @@ class Login extends Component
             'loginFields.password.required' => 'Password is required',
         ]);
 
-        auth()->attempt([
+        if (auth()->attempt([
             'username' => $this->loginFields['username'],
             'password' => $this->loginFields['password'],
-        ]);
+        ])) {
+            return redirect()->to('/');
+        }
 
-        return redirect()->to('/');
+        if (auth()->attempt([
+            'email' => $this->loginFields['username'],
+            'password' => $this->loginFields['password'],
+        ])) {
+            return redirect()->to('/');
+        }
+
+        $this->addError('loginFields.password', 'Invalid credentials');
     }
 
     public function register()

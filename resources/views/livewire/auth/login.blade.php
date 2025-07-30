@@ -3,7 +3,7 @@
         <x-headers.h1 label="Login" />
 
         <x-form wire:submit="login">
-            <x-form.input wire:model="loginFields.username" label="Username" />
+            <x-form.input wire:model="loginFields.username" label="Username or email" />
             <x-form.input wire:model="loginFields.password" type="password" label="Password" />
             <x-form.button label="Login" />
         </x-form>

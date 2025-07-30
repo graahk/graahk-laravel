@@ -42,7 +42,10 @@ export class Dude {
   }
 
   async reduce_cost (data) {
+    const amount = window.game.getAmount(data)
+    this.cost = Math.max(this.cost - amount, 0)
 
+    window.nextJob()
   }
 
   async silence () {
@@ -59,8 +62,8 @@ export class Dude {
     })
   }
 
-  async deal_damage (data, source) {
-    const amount = window.game.getAmount(data, source)
+  async deal_damage (data, source, amount = null) {
+    amount = amount || window.game.getAmount(data, source)
     this.power -= amount
 
     if (source && data.animation !== 'projectile') {
@@ -69,18 +72,35 @@ export class Dude {
 
     if (this.power <= 0) {
       this.dead = ! this.keywords.includes('tireless')
-      // this.power = 0 // why?
+      this.power = 0
+    }
+
+    if (this.keywords.includes('withering') && amount > 0) {
+      this.dead = true
+      this.power = 0
     }
 
     if (! this.dead) {
-      game.checkTriggers('survive_damage', [this])
+      game.checkTriggers('survive_damage', [this], source)
     }
 
-    game.checkTriggers('took_damage', [this])
+    game.checkTriggers('took_damage', [this], source)
 
     await new ShakeAnimation({ target: this, intensity: amount }).resolve(() => {
       window.nextJob()
     })
+  }
+
+  async deal_damage_to_opponent (data, source) {
+    const player = window.game.playerById(source.opponent)
+
+    player.deal_damage(data, source, this.power)
+  }
+
+  async deal_damage_to_player (data, source) {
+    const player = window.game.playerById(source.owner)
+
+    player.deal_damage(data, source, this.power)
   }
 
   async heal (data, source) {
@@ -95,11 +115,11 @@ export class Dude {
         this.original.power
       )
 
-      game.checkTriggers('healed', [this])
-      game.checkTriggers('dude_heals_another', false, [this], true)
+      game.checkTriggers('healed', [this], source)
+      game.checkTriggers('dude_heals_another', [window.game.artifact, ...window.game.getTargets('all_dudes')], this)
 
       if (this.power >= this.original.power) {
-        game.checkTriggers('dude_fully_healed', [this])
+        game.checkTriggers('dude_fully_healed', [this], source)
       }
     }
 
@@ -125,11 +145,15 @@ export class Dude {
     })
   }
 
-  async duplicate () {
-    let player = window.game.playerById(this.owner)
+  async duplicate (data, source, player = null) {
+    player = player || window.game.playerById(this.owner)
 
-    let clone = reactive(new Dude(this))
-    clone.uuid = window.uuid(player.uuid + player.board.length + player.graveyard.length)
+    let clone = reactive(new Dude(
+      JSON.parse(JSON.stringify(this))
+    ))
+
+    clone.owner = player.id
+    clone.uuid = window.uuid(player.uuid + player.board.length + player.graveyard.length + player.hand.length)
     clone.highlighted = false
     player.board.push(clone)
 
@@ -137,6 +161,12 @@ export class Dude {
     await new ShakeAnimation({ target: this }).resolve(() => {
       window.nextJob()
     })
+  }
+
+  async duplicate_to_player (data, source) {
+    const player = window.game.playerById(data.player === 'player' ? source.owner : source.opponent)
+
+    this.duplicate(data, source, player)
   }
 
   async ready_dudes () {
@@ -186,10 +216,11 @@ export class Dude {
 
     player.board.splice(player.board.map((c) => c.uuid).indexOf(this.uuid), 1)
 
-    this.reset()
+    this.reset_health()
 
     // Turn it into a normal object
     this.highlighted = false
+    this.glowing = false
     this.keywords = this.original.keywords
     player.hand.push(JSON.parse(JSON.stringify(this)))
 
@@ -200,7 +231,7 @@ export class Dude {
     let player = window.game.playerById(this.owner)
 
     await new ShakeAnimation({ target: this }).resolve(() => {
-      this.reset()
+      this.reset_health()
       player.deck.push(player.board.splice(player.board.map((c) => c.uuid).indexOf(this.uuid), 1)[0])
       player.shuffle()
       window.nextJob()
@@ -212,7 +243,7 @@ export class Dude {
     let opponent = window.game.playerById(this.opponent)
 
     await new ShakeAnimation({ target: this }).resolve(() => {
-      this.reset()
+      this.softReset()
       opponent.deck.push(player.board.splice(player.board.map((c) => c.uuid).indexOf(this.uuid), 1)[0])
       opponent.shuffle()
       window.nextJob()
@@ -236,6 +267,14 @@ export class Dude {
   async unnamed_one () {
     let player = window.game.playerById(this.owner)
     this.power = parseInt(player.graveyard.length * 50)
+
+    window.nextJob()
+  }
+
+  async activate () {
+    if (this.dead) return
+
+    window.game.checkTriggers('activate', [this])
 
     window.nextJob()
   }

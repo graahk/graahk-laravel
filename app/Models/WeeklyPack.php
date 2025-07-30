@@ -15,6 +15,7 @@ class WeeklyPack extends Model
     protected $fillable = [
         'name',
         'attachment_id',
+        'artifact_id',
         'cards',
     ];
 
@@ -27,12 +28,14 @@ class WeeklyPack extends Model
         return $this->belongsTo(Attachment::class);
     }
 
+    public function artifact(): BelongsTo
+    {
+        return $this->belongsTo(Card::class);
+    }
+
     public function list(): Collection
     {
-        return Collection::wrap($this->cards)
-            ->map(fn (int $cardId) => Card::find($cardId))
-            ->filter()
-            ->values();
+        return Card::find($this->cards);
     }
 
     public static function current(): self

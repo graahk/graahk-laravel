@@ -28,7 +28,12 @@
             </div>
         </div>
 
-        <div>
+        <div class="w-full flex gap-4">
+            <x-form.button-secondary
+                x-on:click="window.closeModal()"
+                label="Never mind, I'm scared"
+            />
+            
             <x-form.button
                 wire:click="create"
                 label="Create new table"

@@ -9,7 +9,7 @@
                 const card = this.deckList.find((card) => card.card.id === id)
 
                 if (card) {
-                    if (card.amount < 4) {
+                    if (card.amount < 4 || card.card.keywords.includes('innumerable')) {
                         card.amount++
                     }
                 } else {
@@ -36,19 +36,19 @@
             },
         }"
     >
-        {{-- Decklist --}}
+        {{-- Deck list --}}
         <div
             wire:ignore
             class="w-[30rem] h-screen flex flex-col gap-4 py-8"
         >
-            <div class="flex gap-2 w-full items-end">
+            <div class="flex gap-2 w-full items-center">
+                <x-format-icon :format="$deck->format" size="lg" />
+
                 <x-form.input
                     class="grow"
                     label="Deck name"
                     wire:model="name"
                 />
-
-                <x-format-icon :format="$deck->format" size="lg" />
             </div>
 
             <div class="
@@ -72,15 +72,22 @@
                                 src="{{ asset('images/need_help.png') }}"
                             />
 
-                            <div class="flex flex-col gap-2 items-center">
-                                <h3 class="font-bold text-3xl">HELP</h3>
-                                <p>Don't know how to get started?</p>
-                            </div>
+                            @if ($format->isWeekly())
+                                <div class="flex flex-col gap-2 items-center">
+                                    <h3 class="font-bold text-3xl">EMPTY</h3>
+                                    <p>Where are all the dudes?</p>
+                                </div>
+                            @else
+                                <div class="flex flex-col gap-2 items-center">
+                                    <h3 class="font-bold text-3xl">HELP</h3>
+                                    <p>Don't know how to get started?</p>
+                                </div>
 
-                            <x-form.button-secondary
-                                label="Help me, Jack!"
-                                x-on:click="window.location.href = '{{ route('deck-helper.index') }}'"
-                            />
+                                <x-form.button-secondary
+                                    label="Help me, Jack!"
+                                    x-on:click="window.location.href = '{{ route('deck-helper.index') }}'"
+                                />
+                            @endif
                         </div>
                     </template>
 
@@ -238,29 +245,6 @@
                             :options="$tribes"
                         />
                     </div>
-
-                    {{-- <div class="flex gap-4">
-                        <x-form.select
-                            label="Trigger"
-                            nullable
-                            wire:model.live="filters.trigger"
-                            :options="$triggers"
-                        />
-
-                        <x-form.select
-                            label="Effect"
-                            nullable
-                            wire:model.live="filters.effect"
-                            :options="$effects"
-                        />
-
-                        <x-form.select
-                            label="Target"
-                            nullable
-                            wire:model.live="filters.target"
-                            :options="$targets"
-                        />
-                    </div> --}}
                 </div>
             </div>
 
@@ -276,10 +260,25 @@
                             x-on:click="addCard({{ $card->id }})"
                             class="w-1/4 p-2 hover:opacity-75 transition-all cursor-pointer"
                             x-bind:class="{
-                                '!opacity-25 p-3': (deckList.find((card) => card.card.id === {{ $card->id }})?.amount || 0) >= 4,
+                                '!opacity-25 p-3': (deckList.find((card) => card.card.id === {{ $card->id }})?.amount || 0) >= 4
+                                    && ! '{{ json_encode($card->keywords) }}'.includes('innumerable'),
                             }"
                         >
-                            <x-card :$card />
+                            <x-card :$card class="relative">
+                                {{-- <div class="opacity-0 hover:opacity-100 absolute inset-x-0 bottom-0 flex justify-between items-center p-2">
+                                    <x-form.button>
+                                        <x-heroicon-o-minus class="w-6 h-6" />
+                                    </x-form.button>
+                                        
+                                    <x-form.button>
+                                        <x-heroicon-o-eye class="w-6 h-6" />
+                                    </x-form.button>
+                                
+                                    <x-form.button>
+                                        <x-heroicon-o-plus class="w-6 h-6" />
+                                    </x-form.button>
+                                </div> --}}
+                            </x-card>
                         </div>
                     @empty
                         <div

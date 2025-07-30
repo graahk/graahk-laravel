@@ -39,6 +39,9 @@ class SetResource extends Resource
                 Toggle::make('beta')
                     ->label('Is in beta?'),
 
+                Toggle::make('artifacts_set')
+                    ->label('Is an artifacts set?'),
+
                 Grid::make()->schema([
                     AttachmentInput::make('attachment_id')
                         ->label('Cover image'),
@@ -72,6 +75,9 @@ class SetResource extends Resource
 
                 ToggleColumn::make('beta')
                     ->label('Is in beta?'),
+
+                ToggleColumn::make('artifacts_set')
+                    ->label('Is an artifacts set?'),
 
                 AttachmentColumn::make('icon_id')
                     ->label('Icon'),

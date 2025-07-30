@@ -50,7 +50,7 @@ class Index extends Component
             'name' => $this->chosenHelper->name,
             'user_id' => auth()->id(),
             'main_card_id' => $this->chosenHelper->main_card_id,
-            'format' => Format::CHAOS,
+            'format' => Format::STANDARD,
             'cards' => $this->chosenHelper->cards
                 ->push($this->chosenHelper->mainCard)
                 ->mapWithKeys(fn ($card) => [$card->id => 4])

@@ -1,0 +1,22 @@
+.visual-effect-scenery {
+    position: absolute;
+    inset: -4rem;
+    pointer-events: none;
+    background-image: url('/images/visual-effects/scenery.png');
+    background-size: 20%;
+    opacity: .4;
+    transform: rotate(45deg);
+    animation-name: scenery-scroll;
+    animation-duration: 45s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes scenery-scroll {
+    0% {
+        transform: rotate(45deg) translateX(-20%);
+    }
+    100% {
+        transform: rotate(45deg) translateX(20%);
+    }
+}

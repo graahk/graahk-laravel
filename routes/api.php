@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::put('games/{game:id}', [Api\GameController::class, 'update']);
-Route::put('games/{game:id}/finish', [Api\GameController::class, 'finish']);
+Route::put('games/{game:id}/finish/{winner}', [Api\GameController::class, 'finish']);
 
 Route::post('games/{game:id}/event', Api\EventController::class);
 

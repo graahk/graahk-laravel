@@ -18,6 +18,7 @@ export class Player {
     this.power = player.power
     this.originalPower = player.originalPower
     this.energy = player.energy
+    this.keywords = player.keywords || []
 
     this.hand = reactive(player.hand.map((card) => {
       return reactive(new CardHand(card))
@@ -90,6 +91,22 @@ export class Player {
     })
   }
 
+  end_turn () {
+    if (window.game.areCurrentPlayer())  {
+      window.game.event('end_turn')
+    }
+
+    window.nextJob()
+  }
+
+  async give_keyword (data, source) {
+    if (! this.keywords.includes(data.keyword) && ['scorching'].includes(data.keyword)) {
+      this.keywords.push(data.keyword)
+    }
+
+    window.nextJob()
+  }
+
   async gain_energy (data, source) {
     if (source) {
       new ActivatedAnimation({ target: source }).resolve()
@@ -98,7 +115,7 @@ export class Player {
     await new ExplosionAnimation({ target: this.$ref().$refs.energy }).resolve(
       () => this.energy += window.game.getAmount(data, source),
       () => {
-        window.game.checkTriggers('gain_energy', this.board)
+        window.game.checkTriggers('gain_energy', [window.game.artifact, ...this.board], source)
         window.nextJob()
       }
     )
@@ -157,11 +174,7 @@ export class Player {
         this.hand.push(this.deck.pop())
         this.drawsThisTurn++
         await timeout(100)
-
-        game.checkTriggers('draw_card', this.board)
-        if (this.drawsThisTurn > 1) {
-          game.checkTriggers('draw_second_card', this.board)
-        }
+        this.hasDrawnCard(source)
       }
     }
 
@@ -205,8 +218,35 @@ export class Player {
     window.nextJob()
   }
 
-  async deal_damage (data, source) {
+  async drawFromSpecificDeck (data, uuids, source) {
+    let key
     const amount = window.game.getAmount(data, source)
+
+    for (let index = 0; index < amount; index++) {
+      key = this.deck.indexOf(this.deck.find((card) => card.uuid === uuids[index]))
+      if (key === -1) {
+        window.errorToast('No more cards to draw')
+        new ShakeAnimation({ target: source }).resolve()
+        await timeout(500)
+      } else {
+        this.drawsThisTurn++
+        this.hand.push(this.deck.splice(key, 1)[0])
+        new ActivatedAnimation({ target: source }).resolve()
+        await timeout(1000)
+        this.hasDrawnCard(source)
+      }
+    }
+  }
+
+  async hasDrawnCard (source) {
+    window.game.checkTriggers('draw_card', [window.game.artifact, ...this.board], source)
+    if (this.drawsThisTurn > 1) {
+      window.game.checkTriggers('draw_second_card', [window.game.artifact, ...this.board], source)
+    }
+  }
+
+  async deal_damage (data, source, amount = null) {
+    amount = amount || window.game.getAmount(data, source)
     this.power -= amount
 
     if (source) {
@@ -244,21 +284,13 @@ export class Player {
     })
   }
 
-  async drawFromSpecificDeck (data, uuids, source) {
-    let key
-    const amount = window.game.getAmount(data, source)
+  ready_dudes () {
+    this.board.forEach((dude) => {
+      dude.ready_dudes()
+    })
+  }
 
-    for (let index = 0; index < amount; index++) {
-      key = this.deck.indexOf(this.deck.find((card) => card.uuid === uuids[index]))
-      if (key === -1) {
-        window.errorToast('No more cards to draw')
-        new ShakeAnimation({ target: source }).resolve()
-        await timeout(500)
-      } else {
-        this.hand.push(this.deck.splice(key, 1)[0])
-        new ActivatedAnimation({ target: source }).resolve()
-        await timeout(1000)
-      }
-    }
+  stun () {
+
   }
 }

@@ -15,6 +15,7 @@ enum Animation: string implements HasLabel
     case CIRCLE_EXPLOSION = 'circle_explosion';
     case CTHULHULHULHU = 'cthulhulhulhu';
     case ENERGY_PULSE = 'energy_pulse';
+    case FIRE_EXPLOSION = 'fire_explosion';
     case GROUND_BURST = 'ground_burst';
     case PROJECTILE = 'projectile';
     case UNNAMED_ONE = 'unnamed_one';
@@ -25,6 +26,7 @@ enum Animation: string implements HasLabel
             self::CIRCLE_EXPLOSION => 'Circle explosion',
             self::CTHULHULHULHU => 'Cthulhulhulhu',
             self::ENERGY_PULSE => 'Energy pulse',
+            self::FIRE_EXPLOSION => 'Fire explosion',
             self::GROUND_BURST => 'Ground burst (entrance effect)',
             self::PROJECTILE => 'Projectile',
             self::UNNAMED_ONE => 'Blessed arrival (unnamed one effect)',
@@ -52,6 +54,7 @@ enum Animation: string implements HasLabel
             ],
             self::PROJECTILE => [
                 Select::make("{$prefix}type")->required()->options([
+                    'bomb' => 'Bomb',
                     'broken_bottle' => 'Broken bottle',
                     'food' => 'Food',
                     'red_laser' => 'Red laser',

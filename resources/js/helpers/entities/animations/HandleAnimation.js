@@ -1,6 +1,7 @@
 import { CircleExplosionAnimation } from "./CircleExplosionAnimation"
 import { CthulhulhulhuAnimation } from "./CthulhulhulhuAnimation"
 import { ExplosionAnimation } from "./ExplosionAnimation"
+import { FireExplosionAnimation } from "./FireExplosionAnimation"
 import { GroundBurstAnimation } from "./GroundBurstAnimation"
 import { ProjectileAnimation } from "./ProjectileAnimation"
 import { UnnamedOneAnimation } from "./UnnamedOneAnimation"
@@ -27,6 +28,7 @@ export class HandleAnimation {
 
     const animationMapper = {
       circle_explosion: CircleExplosionAnimation,
+      fire_explosion: FireExplosionAnimation,
       cthulhulhulhu: CthulhulhulhuAnimation,
       ground_burst: GroundBurstAnimation,
       projectile: ProjectileAnimation,
@@ -53,7 +55,6 @@ export class HandleAnimation {
   }
 
   async energy_pulse () {
-    console.log(this.target)
     await (this.target || []).forEach(async (target, key) => {
       await new ExplosionAnimation({
         target: target.$el(),

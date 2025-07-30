@@ -3,6 +3,10 @@
 namespace App\Enums;
 
 use App\Enums\Traits\HasList;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Get;
 use Filament\Support\Contracts\HasLabel;
 
 enum Trigger: string implements HasLabel
@@ -12,6 +16,10 @@ enum Trigger: string implements HasLabel
     case ENTER_FIELD = 'enter_field';
     case LEAVE_FIELD = 'leave_field';
     case CAST_RUSE = 'cast_ruse';
+
+    case PLAY_RUSE = 'play_ruse';
+    case PLAYER_PLAY_RUSE = 'player_play_ruse';
+    case OPPONENT_PLAY_RUSE = 'opponent_play_ruse';
 
     case START_TURN = 'start_turn';
     case END_TURN = 'end_turn';
@@ -41,12 +49,17 @@ enum Trigger: string implements HasLabel
 
     case HEALING_REVERSED = 'healing_reversed';
 
+    case ACTIVATE = 'activate';
+
     public function getLabel(): ?string
     {
         return match ($this) {
             self::ENTER_FIELD => 'Enters the field',
             self::LEAVE_FIELD => 'Leaves the field',
-            self::CAST_RUSE => 'Cast ruse',
+            self::CAST_RUSE => 'Activate ruse effect (don\'t use on dudes)',
+            self::PLAY_RUSE => 'Anyone plays ruse',
+            self::PLAYER_PLAY_RUSE => 'You play ruse',
+            self::OPPONENT_PLAY_RUSE => 'Opponent plays ruse',
             self::START_TURN => 'Start of turn',
             self::END_TURN => 'End of turn',
             self::GAIN_ENERGY => 'Gain energy',
@@ -67,36 +80,45 @@ enum Trigger: string implements HasLabel
             self::HEALED => 'Healed',
             self::HEALING_REVERSED => 'Healing reversed (has no effect dropdown)',
             self::DUDE_FULLY_HEALED => 'Healed to full',
+            self::ACTIVATE => 'Special effect activated',
         };
     }
 
-    public function toText(): ?string
+    public function toText(array $parameters): ?string
     {
+        $extra = collect($parameters['trigger_conditions'] ?? [])
+            ->map(fn ($value) => TargetCondition::tryFrom($value['condition'])?->toText($value) ?? '')
+            ->join(' ');
+
         return match ($this) {
-            self::ENTER_FIELD => 'When this dude enters the field,',
-            self::LEAVE_FIELD => 'When this dude dies,',
-            self::CAST_RUSE => 'When played,',
-            self::START_TURN => 'At the start of your turn,',
-            self::END_TURN => 'At the end of your turn,',
-            self::GAIN_ENERGY => 'When you gain energy,',
-            self::PLAY_DUDE => 'Whenever anyone plays a dude,',
-            self::PLAYER_PLAY_DUDE => 'When you play a dude,',
-            self::OPPONENT_PLAY_DUDE => 'When your opponent plays a dude,',
-            self::AFTER_ATTACK => 'After this dude attacks,',
-            self::SURVIVE_DAMAGE => 'When this dude survives damage,',
-            self::TOOK_DAMAGE => 'When this dude takes damage,',
-            self::ATTACK => 'When this dude attacks,',
-            self::KILLING_BLOW => 'When this dude kills another dude,',
-            self::DUDE_DIES => 'When a dude dies,',
-            self::PLAYER_DUDE_DIES => 'When a dude you control dies,',
-            self::OPPONENT_DUDE_DIES => 'When a dude your opponent controls dies,',
-            self::DRAW_CARD => 'After you draw a card,',
-            self::DRAW_SECOND_CARD => 'After you draw a card after your first,',
-            self::DUDE_HEALS_ANOTHER => 'Whenever a dude is healed,',
-            self::HEALED => 'When this dude is healed,',
+            self::ENTER_FIELD => 'When this dude enters the field',
+            self::LEAVE_FIELD => 'When this dude dies',
+            self::CAST_RUSE => 'When played',
+            self::PLAY_RUSE => 'Whenever anyone plays a ruse',
+            self::PLAYER_PLAY_RUSE => 'Whenever you play a ruse',
+            self::OPPONENT_PLAY_RUSE => 'Whenever your opponent plays a ruse',
+            self::START_TURN => 'At the start of your turn',
+            self::END_TURN => 'At the end of your turn',
+            self::GAIN_ENERGY => 'When you gain energy',
+            self::PLAY_DUDE => 'Whenever anyone plays a dude',
+            self::PLAYER_PLAY_DUDE => 'When you play a dude',
+            self::OPPONENT_PLAY_DUDE => 'When your opponent plays a dude',
+            self::AFTER_ATTACK => 'After this dude attacks',
+            self::SURVIVE_DAMAGE => 'When this dude survives damage',
+            self::TOOK_DAMAGE => 'When this dude takes damage',
+            self::ATTACK => 'When this dude attacks',
+            self::KILLING_BLOW => 'When this dude kills another dude',
+            self::DUDE_DIES => 'When a dude dies',
+            self::PLAYER_DUDE_DIES => 'When a dude you control dies',
+            self::OPPONENT_DUDE_DIES => 'When a dude your opponent controls dies',
+            self::DRAW_CARD => 'After you draw a card',
+            self::DRAW_SECOND_CARD => 'After you draw a card after your first',
+            self::DUDE_HEALS_ANOTHER => 'Whenever a dude is healed',
+            self::HEALED => 'When this dude is healed',
             self::HEALING_REVERSED => 'Whenever something would heal, it deals that much damage instead',
-            self::DUDE_FULLY_HEALED => 'When this dude is fully healed,',
-        };
+            self::DUDE_FULLY_HEALED => 'When this dude is fully healed',
+            self::ACTIVATE => 'When activated',
+        } . (filled($extra) ? " {$extra}," : ',');
     }
 
     public function hasEffectDropdown(): bool
@@ -104,6 +126,33 @@ enum Trigger: string implements HasLabel
         return match ($this) {
             self::HEALING_REVERSED => false,
             default => true,
+        };
+    }
+
+    public function schema(): array
+    {
+        return match ($this) {
+            self::PLAY_DUDE,
+            self::PLAYER_PLAY_DUDE,
+            self::OPPONENT_PLAY_DUDE,
+            self::DUDE_DIES,
+            self::PLAYER_DUDE_DIES,
+            self::OPPONENT_DUDE_DIES => [
+                Repeater::make('trigger_conditions')
+                    ->reactive()
+                    ->schema([
+                        Select::make('condition')
+                            ->hiddenLabel()
+                            ->reactive()
+                            ->options(TargetCondition::class)
+                            ->required(),
+
+                        Grid::make(1)->schema(fn (Get $get) =>
+                            TargetCondition::tryFrom($get('condition'))?->schema() ?? []
+                        ),
+                    ]),
+            ],
+            default => [],
         };
     }
 }

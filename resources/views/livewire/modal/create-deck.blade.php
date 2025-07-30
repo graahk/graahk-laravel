@@ -25,12 +25,15 @@
                     </div>
 
                     <div class="flex flex-col">
-                        <x-headers.h3>
-                            {{ $format->name() }} deck
+                        <x-headers.h3 class="gap-2">
+                            <span>{{ $format->name() }} deck</span>
+                            @if ($format->isRecommended())
+                                <span class="text-primary">(Recommended)</span>
+                            @endif
                         </x-headers.h3>
 
                         <p class="opacity-50">
-                            {{ $format->description() }}
+                            {!! $format->description() !!}
                         </p>
                     </div>
                 </div>

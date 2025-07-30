@@ -55,8 +55,8 @@ window.resizeCards = function () {
   const cardNames = document.querySelectorAll('.graahk-card h3')
   const cardPowers = document.querySelectorAll('.graahk-card h4')
   const cardTexts = document.querySelectorAll('.graahk-card p')
-  const cardTribes = document.querySelectorAll('.graahk-card span')
-
+  const cardTribes = document.querySelectorAll('.graahk-card span.tribes')
+  
   for (let i = 0; i < cardCosts.length; i++) {
     window.fitText(cardCosts[i], 0.15)
   }
