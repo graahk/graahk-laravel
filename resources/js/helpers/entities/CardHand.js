@@ -39,10 +39,14 @@ export class CardHand {
 
     window.nextJob()
   }
-  
+
   async add_maximum_power (data) {
-    this.original.power += window.game.getAmount(data, this)
-    this.power = this.original.power
+    if (this.type !== 'ruse') {
+      this.original.power += window.game.getAmount(data, this)
+      this.original.power = Math.max(this.original.power, 0)
+
+      this.power = this.original.power
+    }
 
     window.nextJob()
   }

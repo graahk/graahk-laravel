@@ -3,26 +3,23 @@
     'isArtifact' => $card->type === \App\Enums\CardType::ARTIFACT,
     'text' => $card->toText(),
     'level' => $card->getLevel(),
+    'rounded' => 'rounded-xl',
 ])
 
-@php
-    if ($isArtifact) {
-        $level = 3; // Artifacts are always level 3
-    }
-@endphp
+@php if ($isArtifact) { $level = 3; /* Artifacts are always level 3 */ } @endphp
 
 <div
     data-card-id="{{ $card->id }}"
-    style="background-image: url('{{ $card->attachment->path() }}?1')"
-    {{ $attributes->merge(['class' => '
-        graahk-card has-tooltip w-full rounded-xl overflow-hidden
+    style="background-image: url('{{ $card->getMedia()->path() }}?1')"
+    {{ $attributes->merge(['class' => $rounded . '
+        graahk-card has-tooltip w-full overflow-hidden
         bg-cover bg-center relative
         text-black select-none aspect-[2.5/3.5]
         isolate
     ']) }}
 >
-    <div class="absolute inset-0 rounded-xl overflow-hidden">
-        @if ($level >= 4) <div class="z-[-1] rounded-xl overflow-hidden animate-foil -inset-4"></div> @endif
+    <div class="absolute inset-0 {{ $rounded }} overflow-hidden">
+        @if ($level >= 4) <div class="z-[-1] {{ $rounded }} overflow-hidden animate-foil -inset-4"></div> @endif
     </div>
 
     @if (! $isArtifact)

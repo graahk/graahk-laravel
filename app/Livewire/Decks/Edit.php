@@ -8,6 +8,7 @@ use App\Enums\Format;
 use App\Enums\Keyword;
 use App\Enums\Tribe;
 use App\Livewire\Traits\CanToast;
+use App\Models\Artist;
 use App\Models\Card;
 use App\Models\Deck;
 use App\Models\Set;
@@ -86,16 +87,19 @@ class Edit extends Component
 
         // Set the allowed filters
         $this->filterOptions = collect([
-            'sets' => Set::where('artifacts_set', false)->pluck('name', 'id')->sort(),
             'keywords' => $cards->pluck('keywords')->flatten()->unique()->sort()->mapWithKeys(fn ($item) => [$item => Keyword::from($item)->getLabel()]),
-            'tribes' => $cards->pluck('tribes')->flatten()->unique()->sort()->mapWithKeys(fn ($item) => [$item => Tribe::from($item)->getLabel()]),
+            'tribes' => $cards->pluck('tribes')->flatten()->unique()->sort()->mapWithKeys(fn ($item) => [$item => Tribe::tryFrom($item)?->getLabel()])->filter(),
             'cardTypes' => CardType::filterOptions(),
         ]);
 
-        if (in_array($format, [Format::STANDARD])) {
-            $sets = Set::where('beta', false)
-                ->where('artifacts_set', false)
-                ->pluck('id');
+        $this->filterOptions['sets'] = Set::query()
+            ->when(in_array($format, [Format::STANDARD]), fn ($q) => $q->where('beta', false))
+            ->when(! in_array($format, [Format::BOSS]), fn ($q) => $q->where('boss_cards', false))
+            ->pluck('name', 'id')
+            ->sort();
+
+        if (in_array($format, [Format::STANDARD, Format::CHAOS])) {
+            $sets = $this->filterOptions['sets']->keys();
 
             $cards = $cards->filter(fn (array $card) => collect($card['sets'])->intersect($sets)->isNotEmpty());
             $this->filterOptions['sets'] = $this->filterOptions['sets']
@@ -109,10 +113,12 @@ class Edit extends Component
 
         $cards = $cards
             ->reject(fn (array $card) => $card['type'] === CardType::TOKEN->value)
+            ->reject(fn (array $card) => $card['type'] === CardType::ARTIFACT->value)
             ->when($this->filters->get('set'), fn ($collection, $set) => $collection->filter(fn ($card) => in_array($set, $card['sets'])))
             ->when($this->filters->get('keyword'), fn ($collection, $keyword) => $collection->filter(fn ($card) => in_array($keyword, $card['keywords'])))
             ->when($this->filters->get('tribe'), fn ($collection, $tribe) => $collection->filter(fn ($card) => in_array($tribe, $card['tribes'])))
             ->when($this->filters->get('type'), fn ($collection, $type) => $collection->where('type', $type))
+            ->when($this->filters->get('artist'), fn ($collection, $artist) => $collection->filter(fn ($card) => $card['artist'] === $artist))
             ->when(! is_null($this->filters->get('cost')), fn ($collection) => $collection->where('cost', $this->filters->get('cost')))
             ->when(! is_null($this->filters->get('power')), fn ($collection) => $collection->where('power', $this->filters->get('power')))
             ->when($this->filters->get('search'), function ($collection, $search) {
@@ -128,6 +134,10 @@ class Edit extends Component
             $this->dispatch('openModal', 'weekly-ended', ['deckId' => $this->deck->id]);
         }
 
+        $artists = Artist::orderBy('name')
+            ->where('slug', '!=', 'unfinished')
+            ->get();
+
         return view('livewire.decks.edit', [
             'format' => $this->deck->format,
             'cards' => Card::with('experience')
@@ -140,6 +150,7 @@ class Edit extends Component
             'sets' => $this->filterOptions->get('sets'),
             'keywords' => $this->filterOptions->get('keywords'),
             'tribes' => $this->filterOptions->get('tribes'),
+            'artists' => $artists->pluck('name', 'slug'),
             'sorting' => [
                 'cost-asc' => 'Cost (low to high)',
                 'cost-desc' => 'Cost (high to low)',

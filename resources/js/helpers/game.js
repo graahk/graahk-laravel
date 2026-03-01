@@ -2,6 +2,7 @@ import { SwapTurn } from './events/SwapTurn'
 import { PlayDude } from './events/PlayDude'
 import { Mulliganed } from './events/Mulliganed'
 
+import { Boss } from './entities/bosses/Boss'
 import { Player } from './entities/Player'
 import { Artifact } from './entities/Artifact'
 import { Attack } from './events/Attack'
@@ -11,11 +12,16 @@ import { reactive } from 'vue'
 import { Surrender } from './events/Surrender'
 import { ExpGain } from './events/ExpGain'
 import { PlayRuse } from './events/PlayRuse'
+import { Emote } from './events/Emote'
+import { Dude } from './entities/Dude'
+import { ElDoradoDefensesBoss } from './entities/bosses/ElDoradoDefensesBoss'
+import { TwoFacedDevourerBoss } from './entities/bosses/TwoFacedDevourerBoss'
 
 export class Game {
   constructor (_vue) {
     this._vue = _vue
     this.gameId = _vue.gameId
+    this.isBossFight = _vue.isBossFight || false
     this.pusher = window.pusher.subscribe(this.gameId)
     this.eventFired = false
 
@@ -23,7 +29,19 @@ export class Game {
     this.afterGameUpgrades = reactive(_vue.gameState.after_game_upgrades || [])
 
     this.player = reactive(new Player(_vue.gameState.player))
-    this.opponent = reactive(new Player(_vue.gameState.opponent))
+
+    if (this.isBossFight) {
+      switch (_vue.gameState.opponent.name) {
+        case 'El Dorado Defenses': this.opponent = reactive(new ElDoradoDefensesBoss(_vue.gameState.opponent)); break
+        case 'Two-Faced Devourer': this.opponent = reactive(new TwoFacedDevourerBoss(_vue.gameState.opponent)); break
+        default: this.opponent = reactive(new Boss(_vue.gameState.opponent))
+      }
+
+      this.opponent.mulliganed = 1
+    } else {
+      this.opponent = reactive(new Player(_vue.gameState.opponent))
+    }
+
     this.artifact = _vue.gameState.artifact ? reactive(new Artifact(_vue.gameState.artifact)) : null
 
     this.currentPlayer = (_vue.gameState.current_player === this.player.id ? this.player : this.opponent)
@@ -41,7 +59,16 @@ export class Game {
         case 'attack': (new Attack).resolve(this, data); break
         case 'surrender': (new Surrender).resolve(this, data); break
         case 'exp_gain': (new ExpGain).resolve(this, data); break
+        case 'emote': (new Emote).resolve(this, data); break
         default: window.errorToast(`No trigger for ${data.event}`); break
+      }
+
+      if (data.event === 'play_ruse' && this.currentPlayer.doubledRuses > 0) {
+        this.currentPlayer.doubledRuses--
+
+        if (! [15, 1271].includes(data.data.card.id)) {
+          (new PlayRuse).resolve(this, data, true)
+        }
       }
 
       this.eventFired = false
@@ -89,8 +116,15 @@ export class Game {
       case 'all_players': targets = [player, opponent]; break
       case 'all_hand': targets = player.hand; break
       case 'source': targets = [target]; break
+      case 'attacker': targets = [target]; break
       case 'itself': targets = [owner]; break
       case 'from_uuid': targets = [...player.board, ...opponent.board, player, opponent, ...player.hand].filter((c) => c.uuid === target); break
+      case 'opponent_left_most_dude': targets = opponent.board.slice(0, 1); break
+      case 'opponent_right_most_dude': targets = opponent.board.slice(-1); break
+      case 'player_left_most_dude': targets = player.board.slice(0, 1); break
+      case 'player_right_most_dude': targets = player.board.slice(-1); break
+      case 'player_left_most_hand': targets = player.hand.slice(0, 1); break
+      case 'player_right_most_hand': targets = player.hand.slice(-1); break
       default: window.errorToast(`No target type ${type}`);
     }
 
@@ -99,11 +133,14 @@ export class Game {
       targets = targets.filter((target) => {
         switch (condition.condition) {
           case 'not_self': return target.uuid !== owner.uuid
-          case 'tribe': return target.tribes.includes(condition.tribe)
-          case 'not_tribe': return !target.tribes.includes(condition.tribe)
+          case 'tribe': return target.tribes && target.tribes.includes(condition.tribe)
+          case 'not_tribe': return ! target.tribes || ! target.tribes.includes(condition.tribe)
           case 'specific_card': return target.id == condition.card
           case 'has_keyword': return target.keywords.includes(condition.keyword)
           case 'owner': return target.owner === ((condition.owner === 'player') ? player.id : opponent.id)
+          case 'is_damaged': return target.power < target.original.power
+          case 'is_unchanged': return target.power === target.original.power
+          case 'is_buffed': return target.power > target.original.power
         }
 
         return true
@@ -129,8 +166,8 @@ export class Game {
     const multiplier = parseInt(data.amount_multiplier) || 1
     let amount = 0
 
-    const playerCount = player.board.filter((c) => ! c.dead).length
-    const opponentCount = opponent.board.filter((c) => ! c.dead).length
+    const playerCount = player.board.filter((c) => ! c.dead && c instanceof Dude).length
+    const opponentCount = opponent.board.filter((c) => ! c.dead && c instanceof Dude).length
 
     switch (data.amount_special) {
       case 'for_each_dude_player': amount = playerCount * multiplier; break
@@ -142,7 +179,7 @@ export class Game {
       case 'for_each_y_power': amount = Math.floor(source.power / data.amount_y) * multiplier; break
       case 'for_each_card_in_hand': amount = player.hand.length * multiplier; break
       case 'for_each_card_in_opponent_hand': amount = opponent.hand.length * multiplier; break
-      case 'for_each_artifact_charge': amount = (this.artifact ? this.artifact.charges : 0) * multiplier; break
+      case 'for_each_artifact_charge': amount = (source.charges || 0) * multiplier; break
       default: window.errorToast(`No amount special type ${data.amount_special}`);
     }
 
@@ -207,6 +244,9 @@ export class Game {
             case 'owner': return target.owner === source.owner
             case 'specific_card': return target.id == condition.card
             case 'has_keyword': return target.keywords.includes(condition.keyword)
+            case 'is_damaged': return target.power < target.original.power
+            case 'is_unchanged': return target.power === target.original.power
+            case 'is_buffed': return target.power > target.original.power
           }
         })
       })
@@ -219,7 +259,8 @@ export class Game {
         targets.forEach(async (target) => {
           if (target[effect] === undefined) {
             window.nextJob();
-            return window.errorToast(`No effect ${effect} on ${target.uuid}`)
+            // window.errorToast(`No effect ${effect} on ${target.uuid}`)
+            return
           }
 
           await target[effect](data, source)
@@ -229,6 +270,8 @@ export class Game {
   }
 
   cleanup () {
+    // if (! window.jobs.checkQueueEmpty()) return
+
     this._vue.$refs.targeting.stopTargeting()
 
     let playerList = this.currentPlayer.causalityList()

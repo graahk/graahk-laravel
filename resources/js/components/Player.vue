@@ -1,5 +1,6 @@
 <template>
   <div
+    v-on:mouseleave="emotesOpen = false"
     class="flex flex-col gap-4 p-4 origin-center"
     v-bind:class="{
       'flex-col-reverse': reverse,
@@ -16,11 +17,34 @@
 
       <div
           class="avatar w-full pt-[100%] rounded-lg bg-cover bg-center transition-all duration-300 relative"
+          v-on:click="openEmoteMenu"
           v-bind:style="`background-image: url('${player.avatar}')`"
           v-bind:class="{
             'scale-105': player.glowing,
           }"
-      ></div>
+      >
+        <div
+          v-if="emotesOpen && reverse"
+          style="z-index: 300"
+          class="
+            absolute -inset-x-3 -top-[36vh] h-[35vh]
+            border border-border p-4 bg-black bg-opacity-50 rounded-lg
+            overflow-y-auto
+          "
+        >
+          <div class="grid grid-cols-2 gap-2 w-full">
+            <div
+              v-for="(emote, index) in emotes"
+              v-bind:key="index"
+              class="aspect-square"
+              v-bind:class="`emote-${emote}`"
+              v-on:click="performEmote(emote)"
+            >
+              <img v-bind:src="`/images/animations/emotes/${emote}.png`" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- <div class="absolute opacity-50">
@@ -73,5 +97,32 @@ export default {
       default: false,
     }
   },
+  data () {
+    return {
+      emotesOpen: false,
+      emotes: [
+        'thumbs-up',
+        'who-me',
+        'spoidersus',
+        'spoidershy',
+        'sailorcry',
+      ],
+    }
+  },
+  methods: {
+    openEmoteMenu() {
+      if (! this.reverse || this.$parent.$refs.targeting?.areTargeting()) {
+        return
+      }
+
+      this.emotesOpen = ! this.emotesOpen
+    },
+    performEmote(emote) {
+      window.game.event('emote', {
+        emote: emote,
+        playerId: this.player.id,
+      })
+    },
+  }
 }
 </script>

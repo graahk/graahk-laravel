@@ -59,13 +59,17 @@ class JoinGame extends Modal
         $gameData['decks'][$player2] = $this->fields['deck_id'];
         $gameData['current_player'] = rand(0, 1) ? $player2 : $player1;
 
-        $deck = Deck::find(Arr::first($gameData['decks']));
-        $gameData['artifact'] = $deck->weeklyPack?->artifact->toJavaScript() ?? null;
+        // Check to add an artifact if both players have the weekly pack
+        // $deck = Deck::find(Arr::first($gameData['decks']));
+        // $deck2 = Deck::find(Arr::last($gameData['decks']));
+        // if ($deck->weeklyPack && $deck2->weeklyPack) {
+        //     $gameData['artifact'] = $deck->weeklyPack?->artifact->toJavaScript() ?? null;
+        // }
 
         foreach ($gameData['decks'] as $player => $deck) {
             $user = User::find($player);
-
             $deck = Deck::find($deck);
+
             $deck->touch();
 
             $gameData["player_{$player}"] = [

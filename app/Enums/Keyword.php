@@ -17,6 +17,8 @@ enum Keyword: string implements HasLabel
     case WITHERING = 'withering';
     case INNUMERABLE = 'innumerable';
     case SCORCHING = 'scorching';
+    case LIFE_LINKED = 'life_linked';
+    case DELICATE = 'delicate';
 
     public function getLabel(): ?string
     {
@@ -29,6 +31,8 @@ enum Keyword: string implements HasLabel
             self::WITHERING => 'Withering',
             self::INNUMERABLE => 'Innumerable',
             self::SCORCHING => 'Scorching',
+            self::LIFE_LINKED => 'Life Linked',
+            self::DELICATE => 'Delicate',
         };
     }
 
@@ -43,6 +47,8 @@ enum Keyword: string implements HasLabel
             self::WITHERING => 'Withering',
             self::INNUMERABLE => 'Innumerable',
             self::SCORCHING => 'Scorching',
+            self::LIFE_LINKED => 'Life Linked',
+            self::DELICATE => 'Delicate',
         };
     }
 
@@ -57,6 +63,8 @@ enum Keyword: string implements HasLabel
             self::WITHERING => 'Any damage dealt to this dude will kill it (ignoring Tireless)',
             self::INNUMERABLE => 'You can have any number of this card in your deck',
             self::SCORCHING => 'If a target with Scorching is attacked, it deals 100 damage to the attacker',
+            self::LIFE_LINKED => 'When this dude takes damage, it also deals that much damage to its owner',
+            self::DELICATE => 'This dude takes double damage from all sources',
         };
     }
 }

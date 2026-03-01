@@ -42,6 +42,10 @@ class SetResource extends Resource
                 Toggle::make('artifacts_set')
                     ->label('Is an artifacts set?'),
 
+                Toggle::make('boss_cards')
+                    ->label('Is a boss cards set?')
+                    ->helperText('This will allow the set to be used in boss decks.'),
+
                 Grid::make()->schema([
                     AttachmentInput::make('attachment_id')
                         ->label('Cover image'),

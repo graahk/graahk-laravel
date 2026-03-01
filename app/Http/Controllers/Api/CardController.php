@@ -6,6 +6,7 @@ use App\Enums\Keyword;
 use App\Http\Controllers\Controller;
 use App\Models\Card;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 class CardController extends Controller
 {
@@ -20,18 +21,20 @@ class CardController extends Controller
 
     public function tooltip(Card $card)
     {
-        $this->getExtras($card);
+        return Cache::rememberForever("{$card->id}-tooltip", function () use ($card) {
+            $this->getExtras($card);
 
-        return view('components.tooltip', [
-            'data' => [
-                'name' => $card->name,
-                'text' => $card->toText(),
-                'tribes' => $card->getTribes()->join(', '),
-                'cost' => $card->cost,
-                'power' => $card->power,
-                'extras' => $this->extras,
-            ],
-        ])->render();
+            return view('components.tooltip', [
+                'data' => [
+                    'name' => $card->name,
+                    'text' => $card->toText(),
+                    'tribes' => $card->getTribes()->join(', '),
+                    'cost' => $card->cost,
+                    'power' => $card->power,
+                    'extras' => $this->extras,
+                ],
+            ])->render();
+        });
     }
 
     private function getExtras(Card $card)

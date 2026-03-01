@@ -27,9 +27,9 @@ class Index extends Component
         app('site')->title('Decks');
 
         // Remove empty decks
-        Deck::where('user_id', auth()->id())->get()
-            ->filter(fn (Deck $deck) => collect($deck->cards)->isEmpty())
-            ->each->delete();
+        // Deck::where('user_id', auth()->id())->get()
+        //     ->filter(fn (Deck $deck) => collect($deck->cards)->isEmpty())
+        //     ->each->delete();
     }
 
     public function render()

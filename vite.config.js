@@ -5,10 +5,10 @@ import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   server: {
-    https: true,
+    https: false,
     host: '0.0.0.0',
     hmr: {
-      host: '192.168.0.131'
+      host: 'localhost',
     },
   },
   plugins: [

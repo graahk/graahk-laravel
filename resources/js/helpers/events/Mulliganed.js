@@ -11,6 +11,13 @@ export class Mulliganed {
       player.hand = player.deck.splice(0, 5) // Draw 5 cards
     }
 
+    if (game.isBossFight) {
+      // Draw cards for your opponent
+      //Randomize the deck order
+      game.opponent.deck = game.opponent.deck.sort(() => Math.random() - 0.5)
+      game.opponent.hand = game.opponent.deck.splice(0, 5) // Draw 5 cards
+    }
+
     if (game.haveMulliganed()) {
       const data = {
         text: (game.areCurrentPlayer() ? 'You go first!' : 'Opponent goes first!')

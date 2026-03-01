@@ -21,10 +21,14 @@ class Index extends Component
     {
         return view('livewire.library.index', [
             'cards' => Set::find($this->setId)?->cards()->noTokens()->get() ?? collect(),
-            'sets' => Set::latest()->get()->sortBy([
-                ['beta', 'asc'],
-                ['created_at', 'asc'],
-            ]),
+            'sets' => Set::latest()
+                ->where('artifacts_set', false)
+                ->where('boss_cards', false)
+                ->get()
+                ->sortBy([
+                    ['beta', 'asc'],
+                    ['created_at', 'asc'],
+                ]),
         ]);
     }
 }

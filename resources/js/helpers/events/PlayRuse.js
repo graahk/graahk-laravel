@@ -2,7 +2,7 @@ import { Ruse } from "../entities/Ruse"
 import { reactive } from "vue"
 
 export class PlayRuse {
-  resolve (game, event) {
+  resolve (game, event, doubled = false) {
     let card = reactive(new Ruse(event.data.card))
 
     game._vue.queue([
@@ -13,8 +13,10 @@ export class PlayRuse {
         card.glowing = false
 
         game._vue.$refs.display.setCard(card)
-        game.currentPlayer.hand = game.currentPlayer.hand.filter((c, key) => key !== event.data.key)
-        game.currentPlayer.energy -= card.cost
+        if (! doubled) {
+          game.currentPlayer.hand = game.currentPlayer.hand.filter((c, key) => key !== event.data.key)
+          game.currentPlayer.energy -= card.cost
+        }
 
         await timeout(card.enterSpeed || 500)
 

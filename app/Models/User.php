@@ -36,6 +36,12 @@ class User extends Authenticatable
         return $this->belongsTo(Attachment::class, 'avatar_id');
     }
 
+    public function alternateArts()
+    {
+        return $this->morphToMany(AlternateArt::class, 'unlock', 'user_unlocks')
+            ->where('enabled', true);
+    }
+
     // Old avatars
     public function oldAvatars()
     {

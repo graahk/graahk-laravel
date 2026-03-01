@@ -28,7 +28,7 @@ enum CardType: string implements HasLabel
     public static function filterOptions(): Collection
     {
         return collect(self::cases())
-            ->reject(fn (self $type) => $type === self::TOKEN)
+            ->reject(fn (self $type) => in_array($type, [self::TOKEN, self::ARTIFACT]))
             ->mapWithKeys(fn (self $type) => [$type->value => $type->getLabel()]);
     }
 }

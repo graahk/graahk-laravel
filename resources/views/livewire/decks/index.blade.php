@@ -70,9 +70,15 @@
         @if ($shownDecks->count())
             <div class="w-full grid grid-cols-3 gap-4">
                 @foreach ($shownDecks as $deck)
-                    <x-deck :$deck :wire:key="$deck->id" />
+                    <x-deck :$deck :show-buttons="true" :wire:key="$deck->id" />
                 @endforeach
             </div>
+
+            {{-- <div class="w-full flex flex-col gap-4">
+                @foreach ($shownDecks as $deck)
+                    <x-deck.list :$deck :show-buttons="true" :wire:key="$deck->id" />
+                @endforeach
+            </div> --}}
         @else
             <div class="flex flex-col items-center gap-8 mt-24">
                 <img

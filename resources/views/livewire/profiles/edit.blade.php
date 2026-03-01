@@ -46,25 +46,34 @@
             </div>
         </div>
 
-        <form
-            wire:submit.prevent="update"
-            class="flex flex-col gap-6 w-full"
-        >
-            <x-headers.h2 label="General" />
+        <div class="flex flex-col gap-4 w-full">
+            <form
+                wire:submit.prevent="update"
+                class="flex flex-col gap-6 w-full"
+            >
+                <x-headers.h2 label="General" />
 
-            <x-form.input
-                label="Username"
-                wire:model="username"
-            />
+                <x-form.input
+                    label="Username"
+                    wire:model="username"
+                />
 
-            <x-form.input
-                label="E-mail"
-                wire:model="email"
-            />
+                <x-form.input
+                    label="E-mail"
+                    wire:model="email"
+                />
 
-            <div>
-                <x-form.button label="Update profile" />
+                <div>
+                    <x-form.button label="Update profile" />
+                </div>
+            </form>
+
+            <div class="w-full">
+                <x-form.button-secondary
+                    x-on:click="window.location.href = '{{ route('logout.index') }}'"
+                    label="Logout"
+                />
             </div>
-        </form>
+        </div>
     </div>
 </x-container>

@@ -2,6 +2,7 @@
     <div
         class="w-full h-screen flex gap-4"
         x-data="{
+            isMakingBossDeck: {{ $deck->format->isBoss() ? 'true' : 'false' }},
             deckList: @entangle('deckList'),
             mainCardId: @entangle('mainCardId'),
             cardList: @js($cardList),
@@ -9,7 +10,7 @@
                 const card = this.deckList.find((card) => card.card.id === id)
 
                 if (card) {
-                    if (card.amount < 4 || card.card.keywords.includes('innumerable')) {
+                    if (card.amount < 4 || card.card.keywords.includes('innumerable') || this.isMakingBossDeck) {
                         card.amount++
                     }
                 } else {
@@ -147,7 +148,7 @@
             </div>
         </div>
 
-        {{-- Cardpool --}}
+        {{-- Card pool --}}
         <div class="flex flex-col gap-8 h-screen w-full p-8 overflow-y-auto" x-data="{
             open: false,
         }">
@@ -157,7 +158,7 @@
                     <div class="w-1/2">
                         <x-form.input
                             label="Search by name or text"
-                            wire:model.debounce.live="filters.search"
+                            wire:model.live.debounce.1000ms="filters.search"
                         />
                     </div>
 
@@ -221,6 +222,20 @@
                             type="number"
                             wire:model.live="filters.power"
                         />
+
+                        <x-form.select
+                            label="Tribe"
+                            nullable
+                            wire:model.live="filters.tribe"
+                            :options="$tribes"
+                        />
+
+                        <x-form.select
+                            label="Keyword"
+                            nullable
+                            wire:model.live="filters.keyword"
+                            :options="$keywords"
+                        />
                     </div>
 
                     <div class="flex gap-4">
@@ -232,17 +247,10 @@
                         />
 
                         <x-form.select
-                            label="Keyword"
+                            label="Artist"
                             nullable
-                            wire:model.live="filters.keyword"
-                            :options="$keywords"
-                        />
-
-                        <x-form.select
-                            label="Tribe"
-                            nullable
-                            wire:model.live="filters.tribe"
-                            :options="$tribes"
+                            wire:model.live="filters.artist"
+                            :options="$artists"
                         />
                     </div>
                 </div>
@@ -269,11 +277,11 @@
                                     <x-form.button>
                                         <x-heroicon-o-minus class="w-6 h-6" />
                                     </x-form.button>
-                                        
+
                                     <x-form.button>
                                         <x-heroicon-o-eye class="w-6 h-6" />
                                     </x-form.button>
-                                
+
                                     <x-form.button>
                                         <x-heroicon-o-plus class="w-6 h-6" />
                                     </x-form.button>

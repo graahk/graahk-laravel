@@ -5,12 +5,18 @@ export class SwapTurn {
     game._vue.queue([
       (() => {
         game.checkTriggers('end_turn', [game.artifact, ...game.currentPlayer.board])
+
+        if (game.isBossFight && ! game.areCurrentPlayer()) {
+          game.checkTriggers('boss_end_turn', [game.artifact])
+        }
+
         window.nextJob()
       }),
       (() => {
         [game.currentPlayer, game.currentOpponent] = [game.currentOpponent, game.currentPlayer]
 
         game.currentPlayer.keywords = game.currentPlayer.keywords.filter((keyword) => keyword !== 'scorching')
+        game.currentPlayer.doubledRuses = 0
 
         // If you are the new active player
         if (game.currentPlayer.id === game.player.id) {
@@ -28,6 +34,11 @@ export class SwapTurn {
         })
 
         game.checkTriggers('start_turn', [game.artifact, ...game.currentPlayer.board.filter((d) => d.dead === false)])
+
+        if (game.isBossFight && ! game.areCurrentPlayer()) {
+          game.checkTriggers('boss_start_turn', [game.artifact])
+        }
+
         window.nextJob()
       }),
       (() => {
@@ -42,6 +53,17 @@ export class SwapTurn {
       (() => {
         game.currentPlayer.ready_dudes()
         window.nextJob()
+      }),
+      (() => {
+        // Play the boss turn, if applicable
+        if (! game.isBossFight || game.areCurrentPlayer()) {
+          window.nextJob()
+          return
+        }
+
+        window.setTimeout(() => {
+          game.currentPlayer.playNPCTurn()
+        }, 1000)
       }),
     ], 'end')
   }

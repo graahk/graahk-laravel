@@ -15,11 +15,13 @@ class Set extends Model
         'icon_id',
         'beta',
         'artifacts_set',
+        'boss_cards',
     ];
 
     protected $casts = [
         'beta' => 'boolean',
         'artifacts_set' => 'boolean',
+        'boss_cards' => 'boolean',
     ];
 
     public function attachment()

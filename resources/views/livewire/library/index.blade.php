@@ -28,7 +28,7 @@
                         'bg-surface' => $set->id !== $setId,
                         'bg-primary color-black' => $set->id === $setId,
                     ])>
-                        {{ $set->name }}
+                        {{-- {{ $set->name }} --}}
                     </div>
                 </div>
             @endforeach

@@ -18,6 +18,9 @@ class Index extends Component
         return view('livewire.stats.index', [
             'popularCardCounts' => $popularCards->mapWithKeys(fn ($count, $cardId) => [$cardId => ceil(($count * 100) / $deckCount)]),
             'popularCards' => Card::withoutGlobalScopes()
+                ->with('sets')
+                ->whereHas('sets', fn ($q) => $q->where('boss_cards', false))
+                ->whereHas('sets', fn ($q) => $q->where('artifacts_set', false))
                 ->where('type', '!=', CardType::TOKEN)
                 ->get()
                 ->sortByDesc(fn ($card) => $popularCards[$card->id] ?? 0),

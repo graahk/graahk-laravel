@@ -2,6 +2,7 @@ import { CircleExplosionAnimation } from "./CircleExplosionAnimation"
 import { CthulhulhulhuAnimation } from "./CthulhulhulhuAnimation"
 import { ExplosionAnimation } from "./ExplosionAnimation"
 import { FireExplosionAnimation } from "./FireExplosionAnimation"
+import { GreatDevouringAnimation } from "./GreatDevouringAnimation"
 import { GroundBurstAnimation } from "./GroundBurstAnimation"
 import { ProjectileAnimation } from "./ProjectileAnimation"
 import { UnnamedOneAnimation } from "./UnnamedOneAnimation"
@@ -30,6 +31,7 @@ export class HandleAnimation {
       circle_explosion: CircleExplosionAnimation,
       fire_explosion: FireExplosionAnimation,
       cthulhulhulhu: CthulhulhulhuAnimation,
+      great_devouring: GreatDevouringAnimation,
       ground_burst: GroundBurstAnimation,
       projectile: ProjectileAnimation,
     }

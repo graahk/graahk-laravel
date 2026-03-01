@@ -71,12 +71,20 @@
             name="dude"
             tag="div"
           >
-            <CardBoard
-              v-for="card in game.opponent.board"
-              v-bind:key="card.uuid"
-              :card="card"
-              v-on:click="target(card)"
-            />
+            <template v-for="card in game.opponent.board" v-bind:key="card.uuid">
+              <CardBoard
+                v-if="card.id !== 1307"
+                :card="card"
+                v-on:click="target(card)"
+              />
+
+              <!-- Blood Moon -->
+              <BloodMoon
+                v-if="card.id === 1307"
+                :card="card"
+                :highlighted="! game.areCurrentPlayer()"
+              />
+            </template>
           </TransitionGroup>
         </Board>
 
@@ -174,7 +182,9 @@ import Targeting from './Targeting.vue'
 import Errors from './Errors.vue'
 import Mulligan from './Mulligan.vue'
 import GameFinished from './GameFinished.vue'
+import BloodMoon from './bosses/BloodMoon.vue'
 import { Game } from '../helpers/game'
+import { BossGame } from '../helpers/boss-game'
 import { Queue } from '../helpers/entities/Queue'
 
 import { reactive } from 'vue'
@@ -185,6 +195,7 @@ export default {
     Card,
     Artifact,
     Board,
+    BloodMoon,
     CardBoard,
     Player,
     Display,
@@ -198,6 +209,10 @@ export default {
     startingGameState: String,
     playerId: Number,
     gameId: String,
+    isBossFight: {
+      type: Boolean,
+      default: false,
+    },
   },
   data () {
     return {
@@ -209,7 +224,10 @@ export default {
     }
   },
   created () {
-    this.game = window.game = new Game(this)
+    this.isBossFight
+      ? (this.game = window.game = new BossGame(this))
+      : (this.game = window.game = new Game(this))
+
     this.jobs = window.jobs = reactive(new Queue())
 
     this.gameCompleted = this.game.completed

@@ -52,10 +52,9 @@ export class Dude {
     this.effects = []
     this.keywords = []
 
-    this.debuffs.push(new Debuff({
-      type: 'silenced',
-      visual: 'silenced',
-    }))
+    if (! this.debuffs.some((debuff) => debuff.type === 'silenced')) {
+      this.debuffs.push(new Debuff({ type: 'silenced', visual: 'silenced' }))
+    }
 
     await new ActivatedAnimation({ target: this }).resolve(null, () => {
       window.nextJob()
@@ -130,6 +129,7 @@ export class Dude {
 
   async add_maximum_power (data) {
     this.original.power += window.game.getAmount(data, this)
+    this.original.power = Math.max(this.original.power, 0)
 
     await new HealAnimation({ target: this }).resolve(null, () => {
       window.nextJob()
@@ -155,7 +155,7 @@ export class Dude {
     clone.owner = player.id
     clone.uuid = window.uuid(player.uuid + player.board.length + player.graveyard.length + player.hand.length)
     clone.highlighted = false
-    player.board.push(clone)
+    player.pushToBoard(clone)
 
     // TODO: animation
     await new ShakeAnimation({ target: this }).resolve(() => {
@@ -210,7 +210,10 @@ export class Dude {
   }
 
   bounce () {
-    if (this.dead) return
+    if (this.dead) {
+      window.nextJob()
+      return
+    }
 
     let player = window.game.playerById(this.owner)
 
@@ -222,6 +225,7 @@ export class Dude {
     this.highlighted = false
     this.glowing = false
     this.keywords = this.original.keywords
+    this.debuffs = []
     player.hand.push(JSON.parse(JSON.stringify(this)))
 
     window.nextJob()

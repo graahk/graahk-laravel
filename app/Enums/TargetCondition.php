@@ -17,6 +17,9 @@ enum TargetCondition: string implements HasLabel
     case NOT_TRIBE = 'not_tribe';
     case SPECIFIC_CARD = 'specific_card';
     case HAS_KEYWORD = 'has_keyword';
+    case IS_DAMAGED = 'is_damaged';
+    case IS_UNCHANGED = 'is_unchanged';
+    case IS_BUFFED = 'is_buffed';
 
     public function getLabel(): ?string
     {
@@ -27,6 +30,9 @@ enum TargetCondition: string implements HasLabel
             self::NOT_TRIBE => 'Does not have tribe',
             self::SPECIFIC_CARD => 'Is a specific card',
             self::HAS_KEYWORD => 'Has keyword',
+            self::IS_DAMAGED => 'Is damaged',
+            self::IS_UNCHANGED => 'Power is unchanged',
+            self::IS_BUFFED => 'Is buffed',
         };
     }
 
@@ -49,6 +55,9 @@ enum TargetCondition: string implements HasLabel
             },
             self::SPECIFIC_CARD => "to <i>{$parameters['card']}</i>",
             self::HAS_KEYWORD => "with <i>{$keyword}</i>",
+            self::IS_DAMAGED => 'that is damaged',
+            self::IS_UNCHANGED => 'that has its original power',
+            self::IS_BUFFED => 'that is buffed',
         };
     }
 

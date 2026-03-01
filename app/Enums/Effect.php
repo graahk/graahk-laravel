@@ -33,6 +33,7 @@ enum Effect: string implements HasLabel
     case DRAW_SPECIFIC_COST = 'draw_specific_cost';
     case DRAW_SPECIFIC_TRIBE = 'draw_specific_tribe';
     case DRAW_SPECIFIC_DUDE = 'draw_specific_dude';
+    case DOUBLE_RUSE = 'double_ruse';
     case BOUNCE = 'bounce';
     case SILENCE = 'silence';
     case READY_DUDE = 'ready_dudes';
@@ -68,6 +69,7 @@ enum Effect: string implements HasLabel
             self::DRAW_SPECIFIC_COST => 'Draw specific card (cost)',
             self::DRAW_SPECIFIC_TRIBE => 'Draw specific card (tribe)',
             self::DRAW_SPECIFIC_DUDE => 'Draw specific card (dude)',
+            self::DOUBLE_RUSE => 'Double the next ruse',
             self::BOUNCE => 'Bounce',
             self::SILENCE => 'Stifle',
             self::READY_DUDE => 'Ready dude',
@@ -249,6 +251,12 @@ enum Effect: string implements HasLabel
                 'duplicate',
                 $target,
             ],
+            self::DUPLICATE_TO_PLAYER => [
+                'duplicate',
+                $target,
+                'for',
+                $parameters['player'] === 'player' ? 'yourself' : 'your opponent',
+            ],
             self::KILL => [
                 'this kills',
                 $target,
@@ -289,6 +297,11 @@ enum Effect: string implements HasLabel
                 'named',
                 '<i>' . Card::getName($parameters['dude']) . '</i>',
                 'from your deck',
+            ],
+            self::DOUBLE_RUSE => [
+                'double the next',
+                $parameters['amount'] > 1 ? "{$parameters['amount']} ruses" : 'ruse',
+                'you play this turn',
             ],
             self::SILENCE => [
                 'stifle',
@@ -348,6 +361,7 @@ enum Effect: string implements HasLabel
             self::END_TURN => [
                 'end your turn',
             ],
+            default => dd($this)
         })
             ->filter()
             ->join(' ');

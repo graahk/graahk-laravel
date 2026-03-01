@@ -1,0 +1,22 @@
+.animate-emote {
+    animation: emote 5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+    animation-fill-mode: forwards;
+    z-index: 1000;
+}
+
+// Bursting
+@keyframes emote {
+    0%   { transform: rotate(10deg); opacity: 0; }
+    10%  { opacity: 1; }
+    24%  { transform: rotate(10deg); }
+    25%  { transform: rotate(-10deg); }
+    49%  { transform: rotate(-10deg); }
+    50%  { transform: rotate(10deg); }
+    74%  { transform: rotate(10deg); }
+    75%  { transform: rotate(-10deg); }
+    90%  { opacity: 1; }
+    99%  { transform: rotate(-10deg); }
+    100% { transform: rotate(10deg); opacity: 0; }
+}

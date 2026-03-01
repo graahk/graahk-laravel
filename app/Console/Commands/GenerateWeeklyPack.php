@@ -25,6 +25,7 @@ class GenerateWeeklyPack extends Command
         // Generate a new weekly pack
         $cards = Set::where('beta', false)
             ->where('artifacts_set', false)
+            ->where('boss_cards', false)
             ->get()
             ->pluck('cards')
             ->flatten()

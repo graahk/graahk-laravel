@@ -14,6 +14,7 @@ enum Animation: string implements HasLabel
 
     case CIRCLE_EXPLOSION = 'circle_explosion';
     case CTHULHULHULHU = 'cthulhulhulhu';
+    case GREAT_DEVOURING = 'great_devouring';
     case ENERGY_PULSE = 'energy_pulse';
     case FIRE_EXPLOSION = 'fire_explosion';
     case GROUND_BURST = 'ground_burst';
@@ -25,6 +26,7 @@ enum Animation: string implements HasLabel
         return match ($this) {
             self::CIRCLE_EXPLOSION => 'Circle explosion',
             self::CTHULHULHULHU => 'Cthulhulhulhu',
+            self::GREAT_DEVOURING => 'Great devouring',
             self::ENERGY_PULSE => 'Energy pulse',
             self::FIRE_EXPLOSION => 'Fire explosion',
             self::GROUND_BURST => 'Ground burst (entrance effect)',
@@ -54,13 +56,16 @@ enum Animation: string implements HasLabel
             ],
             self::PROJECTILE => [
                 Select::make("{$prefix}type")->required()->options([
+                    'acid' => 'Acid',
                     'bomb' => 'Bomb',
                     'broken_bottle' => 'Broken bottle',
                     'food' => 'Food',
                     'red_laser' => 'Red laser',
+                    'knife' => 'Knife',
                     'ice' => 'Ice block',
                     'needle' => 'Needle',
                     'web' => 'Webbing',
+                    'withering' => 'Withering',
                 ]),
 
                 TextInput::make("{$prefix}size")

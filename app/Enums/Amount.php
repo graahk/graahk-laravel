@@ -25,6 +25,8 @@ enum Amount: string implements HasLabel
     case FOR_EACH_CARD_IN_HAND = 'for_each_card_in_hand';
     case FOR_EACH_CARD_IN_OPPONENT_HAND = 'for_each_card_in_opponent_hand';
 
+    case FOR_EACH_Y_DUDE_IN_OPPONENT_DECK = 'for_each_y_dude_in_opponent_deck';
+
     public function getLabel(): ?string
     {
         return match ($this) {
@@ -42,6 +44,8 @@ enum Amount: string implements HasLabel
 
             self::FOR_EACH_CARD_IN_HAND => 'For each card in hand',
             self::FOR_EACH_CARD_IN_OPPONENT_HAND => 'For each card in opponent hand',
+
+            self::FOR_EACH_Y_DUDE_IN_OPPONENT_DECK => 'For each Y dude in opponent deck',
         };
     }
 
@@ -62,6 +66,8 @@ enum Amount: string implements HasLabel
 
             self::FOR_EACH_CARD_IN_HAND => 'for each card in your hand',
             self::FOR_EACH_CARD_IN_OPPONENT_HAND => 'for each card in opponent hand',
+
+            self::FOR_EACH_Y_DUDE_IN_OPPONENT_DECK => 'for each <i>{Y}</i> in your opponents deck',
         };
     }
 
@@ -69,6 +75,7 @@ enum Amount: string implements HasLabel
     {
         return in_array($this, [
             self::FOR_EACH_Y_POWER,
+            self::FOR_EACH_Y_DUDE_IN_OPPONENT_DECK,
         ]);
     }
 
@@ -88,8 +95,8 @@ enum Amount: string implements HasLabel
                     ->required(),
 
                 TextInput::make('amount_y')
-                    ->label('Amount (Y)')
-                    ->hidden(fn (Get $get) => $get('amount') !== 'X' || ! self::tryFrom($get('amount_special'))?->hasYField())
+                    ->label('Amount/name (Y)')
+                    ->hidden(fn (Get $get) => $get('amount') !== 'X' || ! self::tryFrom($get('amount_special'))?->hasYField())  
                     ->required(),
 
                 TextInput::make('amount_multiplier')

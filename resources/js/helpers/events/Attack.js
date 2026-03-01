@@ -38,7 +38,11 @@ export class Attack {
         })
       }),
       (() => {
-        game.checkTriggers('after_attack', [attacker], [defender])
+        game.checkTriggers('after_attacked', [defender], attacker)
+        window.nextJob()
+      }),
+      (() => {
+        game.checkTriggers('after_attack', [attacker], defender)
         window.nextJob()
       }),
     ])

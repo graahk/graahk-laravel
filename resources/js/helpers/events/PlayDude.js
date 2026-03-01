@@ -1,4 +1,3 @@
-import { Artifact } from "../entities/Artifact"
 import { Dude } from "../entities/Dude"
 import { reactive } from "vue"
 import { Token } from "../entities/Token"
@@ -8,9 +7,7 @@ export class PlayDude {
   resolve (game, event) {
     let card
 
-    if (event.data.card.type === 'artifact') {
-      card = reactive(new Artifact(event.data.card))
-    } else if (event.data.card.type === 'token') {
+    if (event.data.card.type === 'token') {
       card = reactive(new Token(event.data.card))
     } else {
       card = reactive(new Dude(event.data.card))
@@ -24,7 +21,7 @@ export class PlayDude {
         card.ready = card.keywords.includes('rush')
         card.glowing = false
 
-        game.currentPlayer.board.push(card)
+        game.currentPlayer.pushToBoard(card)
         game.currentPlayer.hand = game.currentPlayer.hand.filter((c, key) => key !== event.data.key)
         game.currentPlayer.energy -= card.cost
 

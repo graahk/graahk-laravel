@@ -117,6 +117,43 @@
           </button>
         </template>
       </div>
+
+      <div
+        class="bg-background p-8 w-1/3 rounded-lg flex flex-col justify-between items-center h-[75vh] absolute top-0"
+        v-if="step === 3"
+        v-bind:key="3"
+      >
+        <template v-if="game.afterGameUpgrades[0] || false">
+          <div class="flex flex-col items-center">
+            <p class="font-bold text-xl">
+              Boss vanquished!
+            </p>
+
+            <p
+              class="text-sm opacity-50"
+              v-text="game.afterGameUpgrades[0].text"
+            />
+          </div>
+
+          <div class="w-[50%] aspect-[2.5/3.5]">
+            <Card
+              :card="game.afterGameUpgrades[0].card"
+              full-sized
+              glowing
+            />
+          </div>
+
+          <button
+            v-on:click="next()"
+            class="
+              block rounded px-6 py-3 font-bold text-xl text-surface
+              bg-green-500 hover:bg-green-600 cursor-pointer
+            "
+          >
+            Hell yeah
+          </button>
+        </template>
+      </div>
     </TransitionGroup>
   </div>
 </template>
@@ -139,22 +176,30 @@ export default {
   },
   async mounted () {
     this.won = (this.game.player.power > 0)
-    this.receivedData = this.game.afterGameUpgrades[this.$parent.playerId] !== undefined
+    this.receivedData = this.game.isBossFight || (this.game.afterGameUpgrades[this.$parent.playerId] !== undefined)
   },
   methods: {
     next () {
-      if (this.step === 1) {
+      if (this.step > 1) {
+        window.location.href = '/'
+      }
+
+      if (this.step === 1 && ! this.game.isBossFight) {
         // Start animation for the experience bar
         window.setTimeout(() => {
           this.$refs.exp_bar.style.width = `${this.currentExp / 4000 * 100}%`
         }, 250)
       }
 
-      if (this.step === 2) {
-        window.location.href = '/server'
+      if (this.game.isBossFight) {
+        if (this.game.afterGameUpgrades[0])  {
+          this.step = 3
+        } else {
+          window.location.href = '/'
+        }
+      } else {
+        this.step = 2
       }
-
-      this.step++
     },
     dataReceived () {
       this.receivedData = true

@@ -39,6 +39,6 @@ class Play extends Component
     {
         $this->game->delete();
 
-        return redirect()->route('server.index');
+        return redirect()->route('dashboard.index');
     }
 }

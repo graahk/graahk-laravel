@@ -1,16 +1,21 @@
 <?php
 
+use App\Enums\BossType;
 use App\Enums\CardType;
+use App\Enums\ChallengeType;
 use App\Enums\Format;
 use App\Enums\Keyword;
 use App\Http\Middleware\Authenticate;
 use App\Livewire;
+use App\Models\Boss;
 use App\Models\Card;
 use App\Models\Deck;
 use App\Models\Draft;
+use App\Models\Reward;
 use App\Models\WeeklyPack;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 Route::get('login', Livewire\Auth\Login::class)
     ->name('login.index');
@@ -76,6 +81,9 @@ Route::middleware([Authenticate::class])->group(function () {
 
     Route::get('play/{game:id}', Livewire\Games\Play::class)
         ->name('game.play');
+
+    Route::get('play-boss/{bossGame:id}', Livewire\Games\PlayBoss::class)
+        ->name('game.play-boss');
 });
 
 // Route::get('csv', function () {
@@ -130,3 +138,37 @@ Route::middleware([Authenticate::class])->group(function () {
 //     dd($response, $response->json());
 // });
 // https://beta.graahk.dev/thercon-login-redirect
+Route::get('challenges', function () {
+    dd(ChallengeType::generate());
+});
+
+Route::get('csv', function () {
+    $path = storage_path('app/cards.csv');
+
+    $csv = Card::whereIn('type', [CardType::DUDE])
+        ->whereHas('sets', fn ($q) => $q->where('beta', false))
+        ->get()
+        ->map(function (Card $card) {
+            // Tab separated string
+            return collect($card->toJavaScript())
+                ->filter(fn ($v, $key) => in_array($key, ['name', 'cost', 'power', 'tribesText', 'text', 'image']))
+                ->map(function (mixed $data, string $key) {
+                    if ($key === 'image') {
+                        @mkdir(storage_path('app/cards'), 0755, true);
+                        $filename = md5($data) . '.jpg';
+                        $path = storage_path("app/cards/{$filename}");
+                        if (!file_exists($path)) {
+                            @file_put_contents($path, file_get_contents($data));
+                        }
+
+                        return $filename;
+                    }
+
+                    return $data;
+                })
+                ->implode("\t");
+        })
+        ->join("\n");
+
+    file_put_contents($path, $csv);
+});

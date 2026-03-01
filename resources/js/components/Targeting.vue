@@ -133,6 +133,9 @@ export default {
                   case 'not_tribe': return !card.tribes.includes(condition.tribe)
                   case 'specific_card': return card.id == condition.card
                   case 'has_keyword': return card.keywords.includes(condition.keyword)
+                  case 'is_damaged': return card.power < card.original.power
+                  case 'is_unchanged': return card.power === card.original.power
+                  case 'is_buffed': return card.power > card.original.power
                 }
 
                 return true

@@ -1,7 +1,7 @@
 <template>
   <div
     class="w-full h-[86vh] inset-[-2rem] absolute pointer-events-none flex justify-end items-center"
-    style="z-index: 700"
+    style="z-index: 1000"
   >
     <Transition name="display">
       <div

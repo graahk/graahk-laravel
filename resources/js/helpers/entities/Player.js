@@ -19,6 +19,7 @@ export class Player {
     this.originalPower = player.originalPower
     this.energy = player.energy
     this.keywords = player.keywords || []
+    this.doubledRuses = player.doubledRuses || 0
 
     this.hand = reactive(player.hand.map((card) => {
       return reactive(new CardHand(card))
@@ -55,6 +56,14 @@ export class Player {
 
   $el () {
     return this.$ref().$el.querySelector('.avatar')
+  }
+
+  $boardRef () {
+    return window.game._vue.$refs['board-' + this.uuid]
+  }
+
+  $boardEl () {
+    return this.$boardRef().$el
   }
 
   coords () {
@@ -136,9 +145,9 @@ export class Player {
       }
 
       if (type === 'token') {
-        this.board.push(reactive(new Token(card.data)))
+        this.pushToBoard(reactive(new Token(card.data)))
       } else {
-        this.board.push(reactive(new Dude(card.data)))
+        this.pushToBoard(reactive(new Dude(card.data)))
       }
     }
   }
@@ -240,7 +249,7 @@ export class Player {
 
   async hasDrawnCard (source) {
     window.game.checkTriggers('draw_card', [window.game.artifact, ...this.board], source)
-    if (this.drawsThisTurn > 1) {
+    if (this.drawsThisTurn > 1 && window.game.areCurrentPlayer()) {
       window.game.checkTriggers('draw_second_card', [window.game.artifact, ...this.board], source)
     }
   }
@@ -284,13 +293,29 @@ export class Player {
     })
   }
 
+  async double_ruse (data, source) {
+    this.doubledRuses += Math.max(window.game.getAmount(data, source), 0)
+
+    if (source) {
+      new ActivatedAnimation({ target: source }).resolve()
+    }
+
+    window.nextJob()
+  }
+
   ready_dudes () {
     this.board.forEach((dude) => {
-      dude.ready_dudes()
+      if (dude instanceof Dude) {
+        dude.ready_dudes()
+      }
     })
   }
 
   stun () {
 
+  }
+
+  pushToBoard (card) {
+    this.board.push(card)
   }
 }

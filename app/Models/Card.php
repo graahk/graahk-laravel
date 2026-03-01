@@ -6,6 +6,7 @@ use AngryMoustache\Media\Models\Attachment;
 use App\CardCache;
 use App\Enums\CardType;
 use App\Enums\Effect;
+use App\Enums\Format;
 use App\Enums\Keyword;
 use App\Enums\Tribe;
 use App\Enums\Trigger;
@@ -85,6 +86,16 @@ class Card extends Model
         return $query->where('type', '!=', CardType::TOKEN);
     }
 
+    public function scopeFormat($query, Format $format)
+    {
+        return $query->whereHas('sets', function ($query) use ($format) {
+            $query->where('beta', match ($format) {
+                Format::STANDARD => false,
+                default => true,
+            });
+        });
+    }
+
     public function getTribes(): Collection
     {
         return Collection::wrap($this->tribes)->map(function (string $tribe) {
@@ -140,7 +151,7 @@ class Card extends Model
             'id' => $this->id,
             'uuid' => (string) Str::uuid(),
             'name' => $this->name,
-            'image' => $this->attachment->path(),
+            'image' => $this->getMedia()->path(),
             'cost' => $this->cost,
             'power' => $this->power,
             'tribes' => $this->tribes,
@@ -154,6 +165,7 @@ class Card extends Model
             'entranceAnimation' => $this->entrance_animation,
             'level' => $this->getLevel($user),
             'sets' => $this->sets->pluck('id')->toArray(),
+            'artist' => $this->artist?->slug,
         ];
 
         return [
@@ -177,11 +189,31 @@ class Card extends Model
             $experience = $this->experience->where('id', $user)->first()
                 ?->pivot->experience;
 
-            if ($experience >= 3000) return 4;
+            if ($experience >= 4000) return 4;
             elseif ($experience >= 1500) return 3;
             elseif ($experience >= 500) return 2;
             else return 1;
         });
+    }
+
+    public  function getMedia(): Attachment
+    {
+        $alternateArt = AlternateArt::where('card_id', $this->id)
+            ->whereHas('users', fn ($query) => $query->where('user_id', auth()->id()))
+            ->first();
+
+        if (! $alternateArt) {
+            // Return the normal art
+            // return collect([[ 'depth' => 0, 'path' => $this->attachment->path() ]]);
+            return $this->attachment;
+        }
+
+        // Return the alternate art
+        return Attachment::find($alternateArt->attachments[0]['attachment']);
+        // return collect($alternateArt->attachments)->map(fn (array $attachment) => [
+        //     'depth' => (int) ($attachment['depth'] ?? 0),
+        //     'path' => Attachment::find($attachment['attachment'])->path(),
+        // ])->sortBy('depth');
     }
 
     public static function getName(int $id): string
@@ -203,6 +235,7 @@ class Card extends Model
 
         static::saving(function (Card $card) {
             Cache::forget("card-name-{$card->id}");
+            Cache::forget("{$card->id}-tooltip");
 
             if ($card->type === CardType::RUSE) {
                 $card->power = null;

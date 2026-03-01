@@ -24,6 +24,9 @@ enum Trigger: string implements HasLabel
     case START_TURN = 'start_turn';
     case END_TURN = 'end_turn';
 
+    case BOSS_START_TURN = 'boss_start_turn';
+    case BOSS_END_TURN = 'boss_end_turn';
+
     case GAIN_ENERGY = 'gain_energy';
 
     case PLAY_DUDE = 'play_dude';
@@ -32,6 +35,7 @@ enum Trigger: string implements HasLabel
 
     case ATTACK = 'attack';
     case AFTER_ATTACK = 'after_attack';
+    case AFTER_ATTACKED = 'after_attacked';
     case SURVIVE_DAMAGE = 'survive_damage';
     case TOOK_DAMAGE = 'took_damage';
     case KILLING_BLOW = 'killing_blow';
@@ -48,6 +52,7 @@ enum Trigger: string implements HasLabel
     case DUDE_FULLY_HEALED = 'dude_fully_healed';
 
     case HEALING_REVERSED = 'healing_reversed';
+    case TAKES_DOUBLE_DAMAGE = 'takes_double_damage';
 
     case ACTIVATE = 'activate';
 
@@ -62,11 +67,14 @@ enum Trigger: string implements HasLabel
             self::OPPONENT_PLAY_RUSE => 'Opponent plays ruse',
             self::START_TURN => 'Start of turn',
             self::END_TURN => 'End of turn',
+            self::BOSS_START_TURN => 'Boss start turn',
+            self::BOSS_END_TURN => 'Boss end turn',
             self::GAIN_ENERGY => 'Gain energy',
             self::PLAY_DUDE => 'Anyone plays dude',
             self::PLAYER_PLAY_DUDE => 'You play dude',
             self::OPPONENT_PLAY_DUDE => 'Opponent plays dude',
             self::AFTER_ATTACK => 'After attacking',
+            self::AFTER_ATTACKED => 'After being attacked',
             self::SURVIVE_DAMAGE => 'Survives damage',
             self::TOOK_DAMAGE => 'Took damage',
             self::ATTACK => 'Attacks',
@@ -79,6 +87,7 @@ enum Trigger: string implements HasLabel
             self::DUDE_HEALS_ANOTHER => 'Dude heals another',
             self::HEALED => 'Healed',
             self::HEALING_REVERSED => 'Healing reversed (has no effect dropdown)',
+            self::TAKES_DOUBLE_DAMAGE => 'Takes double damage (has no effect dropdown)',
             self::DUDE_FULLY_HEALED => 'Healed to full',
             self::ACTIVATE => 'Special effect activated',
         };
@@ -99,11 +108,14 @@ enum Trigger: string implements HasLabel
             self::OPPONENT_PLAY_RUSE => 'Whenever your opponent plays a ruse',
             self::START_TURN => 'At the start of your turn',
             self::END_TURN => 'At the end of your turn',
+            self::BOSS_START_TURN => 'At the start of the boss turn',
+            self::BOSS_END_TURN => 'At the end of the boss turn',
             self::GAIN_ENERGY => 'When you gain energy',
             self::PLAY_DUDE => 'Whenever anyone plays a dude',
             self::PLAYER_PLAY_DUDE => 'When you play a dude',
             self::OPPONENT_PLAY_DUDE => 'When your opponent plays a dude',
             self::AFTER_ATTACK => 'After this dude attacks',
+            self::AFTER_ATTACKED => 'When this dude is attacked',
             self::SURVIVE_DAMAGE => 'When this dude survives damage',
             self::TOOK_DAMAGE => 'When this dude takes damage',
             self::ATTACK => 'When this dude attacks',
@@ -116,6 +128,7 @@ enum Trigger: string implements HasLabel
             self::DUDE_HEALS_ANOTHER => 'Whenever a dude is healed',
             self::HEALED => 'When this dude is healed',
             self::HEALING_REVERSED => 'Whenever something would heal, it deals that much damage instead',
+            self::TAKES_DOUBLE_DAMAGE => 'This takes double damage',
             self::DUDE_FULLY_HEALED => 'When this dude is fully healed',
             self::ACTIVATE => 'When activated',
         } . (filled($extra) ? " {$extra}," : ',');
@@ -124,7 +137,7 @@ enum Trigger: string implements HasLabel
     public function hasEffectDropdown(): bool
     {
         return match ($this) {
-            self::HEALING_REVERSED => false,
+            self::HEALING_REVERSED, self::TAKES_DOUBLE_DAMAGE => false,
             default => true,
         };
     }

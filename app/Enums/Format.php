@@ -11,6 +11,7 @@ enum Format: string
     case WEEKLY_ENDED = 'weekly_ended';
     case STANDARD = 'standard';
     case CHAOS = 'chaos';
+    case BOSS = 'boss';
 
     public function name(): ?string
     {
@@ -19,6 +20,7 @@ enum Format: string
             self::WEEKLY_ENDED => 'Weekly (Ended)',
             self::STANDARD => 'Standard',
             self::CHAOS => 'Chaos',
+            self::BOSS => 'Boss fight',
         };
     }
 
@@ -41,6 +43,7 @@ enum Format: string
             self::WEEKLY_ENDED => 'gmdi-hourglass-disabled-r',
             self::STANDARD => 'rpg-dragon',
             self::CHAOS => 'rpg-crown-of-thorns',
+            self::BOSS => 'rpg-skull',
         };
     }
 
@@ -50,6 +53,7 @@ enum Format: string
             self::WEEKLY, self::WEEKLY_ENDED => 'background-color: #FFD700; color: #181818;',
             self::STANDARD => 'background-color: #911BDE; color: #FFF;',
             self::CHAOS => 'background-color: #AC1616; color: #FFF;',
+            self::BOSS => 'background-color: #FF4500; color: #000;',
         };
     }
 
@@ -65,6 +69,14 @@ enum Format: string
     {
         return match ($this) {
             self::STANDARD => true,
+            default => false,
+        };
+    }
+
+    public function isBoss(): bool
+    {
+        return match ($this) {
+            self::BOSS => true,
             default => false,
         };
     }

@@ -1,0 +1,34 @@
+.animate-moon-spinning {
+    animation: spinning-moon 180s linear infinite;
+}
+
+.animate-moon-backdrop {
+    animation: backdrop-moon 30s linear infinite;
+}
+
+@keyframes spinning-moon {
+    0% {
+        transform: rotate(0deg) scale(3);
+        opacity: .1;
+    }
+    50%  {
+        transform: rotate(180deg) scale(3.5);
+        opacity: .3;
+    }
+    100% {
+        transform: rotate(360deg) scale(3);
+        opacity: .1;
+    }
+}
+
+@keyframes backdrop-moon {
+    0% {
+        opacity: .5;
+    }
+    50% {
+        opacity: .1;
+    }
+    100% {
+        opacity: .5;
+    }
+}
