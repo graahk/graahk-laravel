@@ -1,7 +1,13 @@
-<div class="relative flex w-full">
-    <x-navigation />
+@props([
+    // 'backgroundImage' => \App\Models\Card::query()
+    //     ->format(\App\Enums\Format::STANDARD)
+    //     ->noTokens()
+    //     ->get()
+    //     ->random()
+    //     ->attachment,
+])
 
-    <div class="h-screen w-full transition-all overflow-y-auto">
-        {{ $slot }}
-    </div>
+<div class="w-full min-h-screen relative">
+    <div class="fixed inset-0 w-full min-h-screen gradient-background pointer-events-none"></div>
+    {{ $slot }}
 </div>

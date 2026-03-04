@@ -1,0 +1,47 @@
+.gradient-background {
+    background: radial-gradient(circle at top right, var(--color-text) 0%, transparent 33%, transparent 66%, var(--color-text) 100%);
+    opacity: 0.05;
+}
+
+.gradient-fade-down {
+    -webkit-mask-image: -webkit-gradient(linear, left 0%, left 60%, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)))
+}
+
+.massive-button {
+    position: relative;
+    background: radial-gradient(
+        circle at top right,
+        var(--color-primary) 0%,
+        var(--color-primary-hover) 33%,
+        var(--color-primary-hover) 66%,
+        var(--color-primary) 100%
+    );
+
+    transition: all 0.2s ease-in-out;
+    font-family: 'Josefin Sans', sans-serif;
+    text-transform: uppercase;
+
+    &::before {
+        content: " ";
+        position: absolute;
+        inset: -6px;
+        border: 1px solid var(--color-border);
+    }
+
+    &::after {
+        content: " ";
+        position: absolute;
+        inset: -12px;
+        border: 1px solid var(--color-border);
+    }
+
+    &:hover {
+        background: radial-gradient(
+            circle at top right,
+            var(--color-primary-hover) 0%,
+            var(--color-primary) 33%,
+            var(--color-primary) 66%,
+            var(--color-primary-hover) 100%
+        );
+    }
+}

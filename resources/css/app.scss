@@ -28,6 +28,7 @@
 @import 'visual-effects/scorching';
 @import 'visual-effects/withering';
 
+@import 'main';
 @import 'modals';
 @import 'toasts';
 
@@ -52,7 +53,7 @@ html {
 :root {
     --color-primary: #6d6ab1;
     --color-primary-hover: #5c5a9c;
-    --color-background: #262425;
+    --color-background: #100f10;
     --color-surface: #1c1c1c;
 
     --color-text: #d3d3d3;

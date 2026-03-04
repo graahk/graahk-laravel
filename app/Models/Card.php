@@ -196,7 +196,36 @@ class Card extends Model
         });
     }
 
-    public  function getMedia(): Attachment
+    public function getCardDetailClickers(): Collection
+    {
+        $text = Str::of($this->toText());
+        $clickers = collect();
+
+        // Check for Keywords
+        collect(Keyword::cases())
+            ->filter(fn (Keyword $keyword) => $text->contains($keyword->getLabel(), true))
+            ->each(function (Keyword $keyword) use ($text, $clickers) {
+                $clickers[$keyword->value] = [
+                    'name' => $keyword->getLabel(),
+                    'description' => $keyword->description(),
+                ];
+            });
+
+        // Check for tokens
+        collect($this->effects)
+            ->filter(fn (array $e) => in_array($e['effect'], [Effect::SPAWN_TOKEN->value, Effect::SPAWN_DUDE->value]))
+            ->map(fn (array $e) => Card::find($e['token'] ?? $e['dude'] ?? null))
+            ->each(function (Card $card) use ($clickers) {
+                $clickers['card-' . $card->id] = [
+                    'name' => $card->name,
+                    'description' => $card->toText(),
+                ];
+            });
+
+        return $clickers;
+    }
+
+    public function getMedia(): Attachment
     {
         $alternateArt = AlternateArt::where('card_id', $this->id)
             ->whereHas('users', fn ($query) => $query->where('user_id', auth()->id()))

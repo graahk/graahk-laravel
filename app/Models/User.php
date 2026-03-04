@@ -79,4 +79,10 @@ class User extends Authenticatable
             ->orWhere('user_id_2', $this->id)
             ->count();
     }
+
+    public function bossesPlayed(): int
+    {
+        return BossGame::where('user_id', $this->id)
+            ->count();
+    }
 }

@@ -76,7 +76,7 @@ Route::middleware([Authenticate::class])->group(function () {
     // Route::get('draft/{uuid}', Livewire\Drafts\Create::class)
     //     ->name('draft.create');
 
-    Route::get('server', Livewire\Servers\Index::class)
+    Route::get('server', fn () => redirect()->to(route('dashboard.index')))
         ->name('server.index');
 
     Route::get('play/{game:id}', Livewire\Games\Play::class)
