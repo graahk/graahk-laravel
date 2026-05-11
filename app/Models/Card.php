@@ -10,12 +10,13 @@ use App\Enums\Format;
 use App\Enums\Keyword;
 use App\Enums\Tribe;
 use App\Enums\Trigger;
+use App\Models\Interfaces\Collectible;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
-class Card extends Model
+class Card extends Model implements Collectible
 {
     protected $fillable = [
         'name',
@@ -58,6 +59,11 @@ class Card extends Model
     public function sets()
     {
         return $this->belongsToMany(Set::class);
+    }
+
+    public function alternateArts()
+    {
+        return $this->hasMany(AlternateArt::class);
     }
 
     public function experience()
@@ -181,6 +187,24 @@ class Card extends Model
         return $this;
     }
 
+    public function setAmount(int $amount): self
+    {
+        $this->amount = $amount;
+
+        return $this;
+    }
+
+    public function setAlternateArt(null|int|AlternateArt $art): self
+    {
+        if (is_int($art)) {
+            $art = AlternateArt::find($art);
+        }
+
+        $this->alternateArt = $art;
+
+        return $this;
+    }
+
     public function getLevel(null | User $user = null): int
     {
         // return 1;
@@ -207,24 +231,23 @@ class Card extends Model
         });
     }
 
-    public  function getMedia(): Attachment
+    public function toCollectibleString(): string
     {
-        $alternateArt = AlternateArt::where('card_id', $this->id)
-            ->whereHas('users', fn ($query) => $query->where('user_id', auth()->id()))
-            ->first();
+        return "card:{$this->id}/level:{$this->getLevel()}";
+    }
 
-        if (! $alternateArt) {
-            // Return the normal art
-            // return collect([[ 'depth' => 0, 'path' => $this->attachment->path() ]]);
-            return $this->attachment;
+    public function getMedia(): Collection
+    {
+        if ($this->alternateArt) {
+            $ids = collect($this->alternateArt->attachments)
+                ->pluck('attachment');
+
+            return Attachment::whereIn('id', $ids)
+                ->orderByRaw("FIELD(id, " . $ids->join(',') . ")")
+                ->get();
         }
 
-        // Return the alternate art
-        return Attachment::find($alternateArt->attachments[0]['attachment']);
-        // return collect($alternateArt->attachments)->map(fn (array $attachment) => [
-        //     'depth' => (int) ($attachment['depth'] ?? 0),
-        //     'path' => Attachment::find($attachment['attachment'])->path(),
-        // ])->sortBy('depth');
+        return collect([$this->attachment]);
     }
 
     public static function getName(int $id): string

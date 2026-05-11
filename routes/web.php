@@ -26,9 +26,6 @@ Route::get('/', Livewire\Dashboard::class)
 Route::get('library', Livewire\Library\Index::class)
     ->name('library.index');
 
-Route::get('packs', Livewire\Packs\Index::class)
-    ->name('packs.index');
-
 Route::middleware([Authenticate::class])->group(function () {
     Route::get('logout', function () {
         auth()->logout();
@@ -87,60 +84,14 @@ Route::middleware([Authenticate::class])->group(function () {
 
     Route::get('play-boss/{bossGame:id}', Livewire\Games\PlayBoss::class)
         ->name('game.play-boss');
+
+    Route::get('packs', Livewire\Packs\Index::class)
+        ->name('packs.index');
+
+    Route::get('collection', Livewire\Collection\Index::class)
+        ->name('collection.index');
 });
 
-// Route::get('csv', function () {
-//     echo '<pre>';
-//     echo Card::noTokens()->get()->map(function (Card $card) {
-//         // Tab separated string
-//         return collect($card->toJavaScript())
-//             ->filter(fn ($v, $key) => in_array($key, ['id', 'name', 'type', 'cost', 'power', 'keywords', 'tribesText', 'text']))
-//             ->map(function ($value, $key) {
-//                 if ($key === 'keywords') {
-//                     return collect($value)->map(fn ($v) => Keyword::from($v)->toText())->implode(', ');
-//                 }
-
-//                 if ($key === 'type') {
-//                     return CardType::from($value)->getLabel();
-//                 }
-
-//                 return $value;
-//             })
-//             ->implode("\t");
-//     })->join("<br>");
-// });
-
-// Route::get('thercon-login-redirect', function () {
-//     return redirect()->to('https://dev.thercon.be/oauth/authorize?' . http_build_query([
-//         'client_id' => '1',
-//         'redirect_uri' => 'https://beta.graahk.dev/oauth/callback',
-//         'response_type' => 'code',
-//     ]));
-// });
-
-// Route::get('/oauth/callback', function (\Illuminate\Http\Request $request) {
-//     $response = (new GuzzleHttp\Client)->post('https://dev.thercon.be/oauth/token', [
-//         'auth' => ['staging', 'staging'],
-//         'form_params' => [
-//             'grant_type' => 'authorization_code',
-//             'client_id' => '1',
-//             'client_secret' => 'sc9fjw6FmNIj7hqyKkQDFRZ0i3e1JpcM3ANofX6N',
-//             'redirect_uri' => 'https://beta.graahk.dev/oauth/callback',
-//             'code' => $request->code,
-//         ],
-//     ]);
-
-//     $token = json_decode((string) $response->getBody(), true)['access_token'];
-
-//     dump($token);
-
-//     $response = Http::withHeaders(['Accept' => 'application/json'])
-//         ->withHeaders(['Authorization' => "Bearer {$token}"])
-//         ->get('https://dev.thercon.be/api/user/current');
-
-//     dd($response, $response->json());
-// });
-// https://beta.graahk.dev/thercon-login-redirect
 Route::get('challenges', function () {
     dd(ChallengeType::generate());
 });
