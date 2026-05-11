@@ -25,6 +25,13 @@
         />
 
         <x-navigation.item
+            route="{{ route('collection.index') }}"
+            :active="request()->routeIs('collection.index')"
+            icon="heroicon-o-arrow-up-on-square-stack"
+            label="Collection"
+        />
+
+        <x-navigation.item
             route="{{ route('packs.index') }}"
             :active="request()->routeIs('packs.index')"
             icon="heroicon-o-arrow-up-on-square-stack"

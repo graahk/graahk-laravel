@@ -1,5 +1,5 @@
 <x-container class="py-12">
-    <div class="grid grid-cols-4 gap-4 p-4">
+    <div class="grid grid-cols-6 gap-4 p-4">
         @foreach ($cards as $card)
             <div>
                 <x-card :card="$card" />
