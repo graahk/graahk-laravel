@@ -41,10 +41,12 @@ enum Effect: string implements HasLabel
     case SHUFFLE_INTO_OPPONENT_DECK = 'shuffle_into_opponents_deck';
     case UNNAMED_ONE = 'unnamed_one';
     case GIVE_KEYWORD = 'give_keyword';
+    case REMOVE_KEYWORD = 'remove_keyword';
     case REDUCE_COST = 'reduce_cost';
     case ADD_MAXIMUM_POWER = 'add_maximum_power';
     case ACTIVATE = 'activate';
     case END_TURN = 'end_turn';
+    case SPREAD_POLLEN = 'spread_pollen';
 
     // Artifact effects
     case GAIN_CHARGE = 'gain_charge';
@@ -77,10 +79,12 @@ enum Effect: string implements HasLabel
             self::SHUFFLE_INTO_OPPONENT_DECK => 'Shuffle into opponent\'s deck',
             self::UNNAMED_ONE => 'Unnamed one effect',
             self::GIVE_KEYWORD => 'Give keyword',
+            self::REMOVE_KEYWORD => 'Remove keyword',
             self::REDUCE_COST => 'Reduce card cost',
             self::ADD_MAXIMUM_POWER => 'Add maximum power',
             self::ACTIVATE => 'Activate special effect',
             self::END_TURN => 'End turn',
+            self::SPREAD_POLLEN => 'Spread pollen',
 
             // Artifact effects
             self::GAIN_CHARGE => 'Gain charge',
@@ -118,6 +122,7 @@ enum Effect: string implements HasLabel
                 Select::make('stun_type')->options([
                     'ice' => 'Ice',
                     'web' => 'Web',
+                    'el_dorado_snare' => 'El Dorado Snare',
                 ])->required(),
             ],
             self::DEAL_DAMAGE_TO_OPPONENT,
@@ -132,7 +137,8 @@ enum Effect: string implements HasLabel
             self::SHUFFLE_INTO_DECK,
             self::SHUFFLE_INTO_OPPONENT_DECK,
             self::ACTIVATE,
-            self::END_TURN => [
+            self::END_TURN,
+            self::SPREAD_POLLEN => [
                 $targetField,
             ],
             self::DUPLICATE_TO_PLAYER => [
@@ -165,7 +171,8 @@ enum Effect: string implements HasLabel
                     ->options(fn () => Card::where('type', CardType::DUDE)->orderBy('name')->pluck('name', 'id'))
                     ->required(),
             ],
-            self::GIVE_KEYWORD => [
+            self::GIVE_KEYWORD,
+            self::REMOVE_KEYWORD => [
                 $targetField,
                 Select::make('keyword')->options(Keyword::class)->required(),
             ],
@@ -340,6 +347,12 @@ enum Effect: string implements HasLabel
                 $target,
                 '<strong>' . Keyword::from($parameters['keyword'])->toText() . '</strong>',
             ],
+            self::REMOVE_KEYWORD => [
+                'remove',
+                '<strong>' . Keyword::from($parameters['keyword'])->toText() . '</strong>',
+                'from',
+                $target,
+            ],
             self::REDUCE_COST => [
                 'reduce the cost of',
                 $target,
@@ -360,6 +373,10 @@ enum Effect: string implements HasLabel
             ],
             self::END_TURN => [
                 'end your turn',
+            ],
+            self::SPREAD_POLLEN => [
+                $target,
+                'gives <strong>Shroomed</strong> to adjacent dudes',
             ],
             default => dd($this)
         })

@@ -43,7 +43,6 @@ class Card extends Model
 
     public $with = [
         'attachment',
-        'artist',
     ];
 
     public function attachment()
@@ -175,12 +174,23 @@ class Card extends Model
         ];
     }
 
+    public function setLevel(int $level): self
+    {
+        $this->level = $level;
+
+        return $this;
+    }
+
     public function getLevel(null | User $user = null): int
     {
         // return 1;
         // return 2;
         // return 3;
         // return 4;
+
+        if ($this->level) {
+            return $this->level;
+        }
 
         $user ??= auth()->user();
 
@@ -199,7 +209,6 @@ class Card extends Model
 
     public  function getMedia(): Attachment
     {
-            return $this->attachment;
         $alternateArt = AlternateArt::where('card_id', $this->id)
             ->whereHas('users', fn ($query) => $query->where('user_id', auth()->id()))
             ->first();

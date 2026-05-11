@@ -4,6 +4,7 @@ namespace App\Models;
 
 use AngryMoustache\Media\Models\Attachment;
 use App\CardCache;
+use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
 
 class Set extends Model
@@ -43,6 +44,18 @@ class Set extends Model
     {
         static::saved(function () {
             CardCache::flush();
+        });
+
+        static::addGlobalScope(function ($query) {
+            if (Filament::isServing()) {
+                return;
+            }
+
+            if (in_array(auth()->user()?->id ?? null, [4, 12])) {
+                return;
+            }
+
+            $query->where('code', '!=', 'SHR');
         });
     }
 }

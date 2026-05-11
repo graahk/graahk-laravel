@@ -1,5 +1,6 @@
 @php
-    $days = $to->diffInDays(now());
+    $weeks = $to->diffInWeeks(now());
+    $days = $to->diffInDays(now()) % 7;
     $hours = $to->diffInHours(now()) % 24;
     $minutes = $to->diffInMinutes(now()) % 60;
     $seconds = $to->diffInSeconds(now()) % 60;
@@ -13,13 +14,14 @@
         bg-countdown
     "
     x-data="{
+        weeks: {{ $weeks }},
         days: {{ $days }},
         hours: {{ $hours }},
         minutes: {{ $minutes }},
         seconds: {{ $seconds }},
         youMadeIt: {{ $madeIt ? 'true' : 'false' }},
         tick () {
-            if (this.days === 0 && this.hours === 0 && this.minutes === 0 && this.seconds === 0) {
+            if (this.weeks === 0 && this.days === 0 && this.hours === 0 && this.minutes === 0 && this.seconds === 0) {
                 this.youMadeIt = true;
                 return;
             }
@@ -35,6 +37,9 @@
 
             if (this.days > 0) { this.days--; return; }
             this.days = 0;
+
+            if (this.weeks > 0) { this.weeks--; return; }
+            this.weeks = 0;
         },
         init() {
             {{-- Shoot an event that all other things can catch --}}
@@ -94,6 +99,7 @@
     <template x-if="! youMadeIt">
         <ul class="w-full flex items-center gap-2 text-2xl justify-center">
             <template x-for="item in [
+                { time: weeks, label: 'Weeks' },
                 { time: days, label: 'Days' },
                 { time: hours, label: 'Hours' },
                 { time: minutes, label: 'Minutes' },
@@ -106,11 +112,11 @@
                         x-show="item.time >= 10"
                     ></p>
                     <p class="text-4xl font-bold" x-show="item.time < 10 && item.time !== 0">
-                        <span class="opacity-50 -mr-3">0</span>
+                        <span class="opacity-50 -mr-2">0</span>
                         <span x-text="item.time"></span>
                     </p>
                     <p class="text-4xl font-bold" x-show="item.time === 0">
-                        <span class="opacity-50">0</span>
+                        <span class="opacity-50 -mr-2">0</span>
                     </p>
 
                     <p

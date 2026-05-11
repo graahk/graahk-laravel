@@ -136,6 +136,7 @@ export default {
                   case 'is_damaged': return card.power < card.original.power
                   case 'is_unchanged': return card.power === card.original.power
                   case 'is_buffed': return card.power > card.original.power
+                  case 'was_damaged_this_turn': return card.wasDamagedThisTurn
                 }
 
                 return true

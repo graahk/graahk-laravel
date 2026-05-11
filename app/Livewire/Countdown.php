@@ -14,10 +14,10 @@ class Countdown extends Component
 
     public function render()
     {
-        Carbon::setTestNow('2028-04-27 00:00:00');
+        // Carbon::setTestNow('2026-04-27 00:00:00');
 
-        $from = Carbon::parse('2026-03-29 12:00:00');
-        $to = Carbon::parse('2026-04-27 00:00:02');
+        $from = Carbon::parse('2026-05-05 12:00:00');
+        $to = Carbon::parse('2026-06-26 22:00:00');
 
         $percentageUntilEndFromNow = 100 - ($to->diffInSeconds(now()) / $to->diffInSeconds($from) * 100);
 

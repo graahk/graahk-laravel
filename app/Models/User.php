@@ -6,7 +6,6 @@ use AngryMoustache\Media\Models\Attachment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Cache;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -30,10 +29,6 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'has_foil_avatar' => 'boolean',
-    ];
-
-    public $with = [
-        'avatar',
     ];
 
     public function avatar()
@@ -62,17 +57,6 @@ class User extends Authenticatable
         ]);
     }
 
-    public function playmat()
-    {
-        return $this->hasOne(Playmat::class)
-            ->where('active', true);
-    }
-
-    public function playmats()
-    {
-        return $this->hasMany(Playmat::class);
-    }
-
     public function decks()
     {
         return $this->hasMany(Deck::class);
@@ -91,17 +75,8 @@ class User extends Authenticatable
 
     public function gamesPlayed(): int
     {
-        return Cache::rememberForever("user_{$this->id}_games_count", function () {
-            return Game::where('user_id_1', $this->id)
-                ->orWhere('user_id_2', $this->id)
-                ->count();
-        });
-    }
-
-    public static function booted()
-    {
-        static::saved(function (User $user) {
-            Cache::forget("user_{$user->id}_games_count");
-        });
+        return Game::where('user_id_1', $this->id)
+            ->orWhere('user_id_2', $this->id)
+            ->count();
     }
 }

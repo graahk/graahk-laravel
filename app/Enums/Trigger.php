@@ -54,6 +54,8 @@ enum Trigger: string implements HasLabel
     case HEALING_REVERSED = 'healing_reversed';
     case TAKES_DOUBLE_DAMAGE = 'takes_double_damage';
 
+    case GAINS_SHROOMED = 'gains_shroomed';
+
     case ACTIVATE = 'activate';
 
     public function getLabel(): ?string
@@ -89,6 +91,7 @@ enum Trigger: string implements HasLabel
             self::HEALING_REVERSED => 'Healing reversed (has no effect dropdown)',
             self::TAKES_DOUBLE_DAMAGE => 'Takes double damage (has no effect dropdown)',
             self::DUDE_FULLY_HEALED => 'Healed to full',
+            self::GAINS_SHROOMED => 'Is granted Shroomed',
             self::ACTIVATE => 'Special effect activated',
         };
     }
@@ -131,6 +134,7 @@ enum Trigger: string implements HasLabel
             self::TAKES_DOUBLE_DAMAGE => 'This takes double damage',
             self::DUDE_FULLY_HEALED => 'When this dude is fully healed',
             self::ACTIVATE => 'When activated',
+            self::GAINS_SHROOMED => 'When this dude gains <strong>Shroomed</strong>',
         } . (filled($extra) ? " {$extra}," : ',');
     }
 

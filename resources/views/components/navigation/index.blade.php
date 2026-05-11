@@ -23,6 +23,13 @@
             icon="heroicon-o-square-3-stack-3d"
             label="Decks"
         />
+
+        <x-navigation.item
+            route="{{ route('packs.index') }}"
+            :active="request()->routeIs('packs.index')"
+            icon="heroicon-o-arrow-up-on-square-stack"
+            label="Booster Packs"
+        />
     @endif
 
     <x-navigation.item

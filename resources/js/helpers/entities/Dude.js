@@ -13,6 +13,7 @@ export class Dude {
 
     this.dead = this.dead || false
     this.debuffs = this.debuffs || []
+    this.wasDamagedThisTurn = this.wasDamagedThisTurn || false
   }
 
   $el () {
@@ -64,6 +65,10 @@ export class Dude {
   async deal_damage (data, source, amount = null) {
     amount = amount || window.game.getAmount(data, source)
     this.power -= amount
+
+    if (amount > 0) {
+      this.wasDamagedThisTurn = true
+    }
 
     if (source && data.animation !== 'projectile') {
       new ActivatedAnimation({ target: source }).resolve()
@@ -170,6 +175,7 @@ export class Dude {
   }
 
   async ready_dudes () {
+    this.wasDamagedThisTurn = false
     this.willClearStuns = this.debuffs.some((debuff) => debuff.type === 'stun')
     this.ready = ! this.debuffs.some((debuff) => debuff.type === 'stun')
       && ! this.keywords.includes('scenery')
@@ -260,9 +266,22 @@ export class Dude {
 
       if (data.keyword === 'rush') this.ready = true
       if (data.keyword === 'scenery') this.ready = false
+      if (data.keyword === 'shroomed') game.checkTriggers('gains_shroomed', [this], source)
+
+      new ActivatedAnimation({ target: source }).resolve()
     }
 
-    new ActivatedAnimation({ target: source }).resolve()
+    new ActivatedAnimation({ target: this }).resolve()
+
+    window.nextJob()
+  }
+
+  async remove_keyword (data, source) {
+    if (this.keywords.includes(data.keyword)) {
+      this.keywords = this.keywords.filter((keyword) => keyword !== data.keyword)
+      new ActivatedAnimation({ target: source }).resolve()
+    }
+
     new ActivatedAnimation({ target: this }).resolve()
 
     window.nextJob()
@@ -279,6 +298,22 @@ export class Dude {
     if (this.dead) return
 
     window.game.checkTriggers('activate', [this])
+
+    window.nextJob()
+  }
+
+  async spread_pollen () {
+    let board = window.game.playerById(this.owner).board
+    let position = board.map((dude) => dude.uuid).indexOf(this.uuid)
+
+    const adjacentDudes = [
+      ...board[position - 1] ? [board[position - 1]] : [],
+      ...board[position + 1] ? [board[position + 1]] : [],
+    ]
+
+    for (let dude of adjacentDudes) {
+      dude.give_keyword({ keyword: 'shroomed' }, this)
+    }
 
     window.nextJob()
   }

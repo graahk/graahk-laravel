@@ -19,6 +19,7 @@ enum Keyword: string implements HasLabel
     case SCORCHING = 'scorching';
     case LIFE_LINKED = 'life_linked';
     case DELICATE = 'delicate';
+    case SHROOMED = 'shroomed';
 
     public function getLabel(): ?string
     {
@@ -33,6 +34,7 @@ enum Keyword: string implements HasLabel
             self::SCORCHING => 'Scorching',
             self::LIFE_LINKED => 'Life Linked',
             self::DELICATE => 'Delicate',
+            self::SHROOMED => 'Shroomed',
         };
     }
 
@@ -49,6 +51,7 @@ enum Keyword: string implements HasLabel
             self::SCORCHING => 'Scorching',
             self::LIFE_LINKED => 'Life Linked',
             self::DELICATE => 'Delicate',
+            self::SHROOMED => 'Shroomed',
         };
     }
 
@@ -65,6 +68,7 @@ enum Keyword: string implements HasLabel
             self::SCORCHING => 'If a target with Scorching is attacked, it deals 100 damage to the attacker',
             self::LIFE_LINKED => 'When this dude takes damage, it also deals that much damage to its owner',
             self::DELICATE => 'This dude takes double damage from all sources',
+            self::SHROOMED => 'Has been shroomed and is feeling the love.',
         };
     }
 }

@@ -1,3 +1,11 @@
+AuthType Basic
+AuthName "Please Log In"
+AuthUserFile /volume1/web/graahk/public/.htpasswd
+Require valid-user
+# Allow ip 195.16.28.36
+# # Allow from "2a02:1811:e402:a900:e42a:2a12:a931:5e11"
+# # Allow from "2a02:1811:e402:a900:c550:c771:73ae:174a"
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

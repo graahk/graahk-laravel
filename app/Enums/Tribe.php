@@ -21,6 +21,8 @@ enum Tribe: string implements HasLabel
     case DESPAIR = 'despair';
     case EL_DORADO = 'el_dorado';
     case CYCLIST = 'cyclist';
+    case SHROOMS = 'shrooms';
+    case LIMBO = 'limbo';
 
     case RUSE = 'ruse';
 
@@ -40,6 +42,8 @@ enum Tribe: string implements HasLabel
             self::EL_DORADO => 'El Dorado',
             self::CYCLIST => 'Cyclist',
             self::RUSE => 'Ruse',
+            self::SHROOMS => 'Shrooms',
+            self::LIMBO => 'Limbo',
         };
     }
 
@@ -59,6 +63,8 @@ enum Tribe: string implements HasLabel
             self::EL_DORADO => 'El Dorado',
             self::CYCLIST => 'Cyclist',
             self::RUSE => 'Ruse',
+            self::SHROOMS => 'Shrooms',
+            self::LIMBO => 'Limbo',
         };
     }
 }

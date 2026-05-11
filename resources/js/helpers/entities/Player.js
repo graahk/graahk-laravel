@@ -258,6 +258,10 @@ export class Player {
     amount = amount || window.game.getAmount(data, source)
     this.power -= amount
 
+    if (amount > 0) {
+      this.wasDamagedThisTurn = true
+    }
+
     if (source) {
       new ActivatedAnimation({ target: source }).resolve()
     }

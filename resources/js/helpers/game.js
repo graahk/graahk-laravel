@@ -141,6 +141,7 @@ export class Game {
           case 'is_damaged': return target.power < target.original.power
           case 'is_unchanged': return target.power === target.original.power
           case 'is_buffed': return target.power > target.original.power
+          case 'was_damaged_this_turn': return target.wasDamagedThisTurn
         }
 
         return true
@@ -247,6 +248,7 @@ export class Game {
             case 'is_damaged': return target.power < target.original.power
             case 'is_unchanged': return target.power === target.original.power
             case 'is_buffed': return target.power > target.original.power
+            case 'was_damaged_this_turn': return target.wasDamagedThisTurn
           }
         })
       })

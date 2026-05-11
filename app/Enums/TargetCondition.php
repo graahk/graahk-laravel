@@ -20,6 +20,8 @@ enum TargetCondition: string implements HasLabel
     case IS_DAMAGED = 'is_damaged';
     case IS_UNCHANGED = 'is_unchanged';
     case IS_BUFFED = 'is_buffed';
+    case DAMAGED_THIS_TURN = 'was_damaged_this_turn';
+    case IS_STUNNED = 'is_stunned';
 
     public function getLabel(): ?string
     {
@@ -33,6 +35,8 @@ enum TargetCondition: string implements HasLabel
             self::IS_DAMAGED => 'Is damaged',
             self::IS_UNCHANGED => 'Power is unchanged',
             self::IS_BUFFED => 'Is buffed',
+            self::DAMAGED_THIS_TURN => 'Was damaged this turn',
+            self::IS_STUNNED => 'Is stunned'
         };
     }
 
@@ -54,10 +58,12 @@ enum TargetCondition: string implements HasLabel
                 Target::OPPONENT->value => 'your opponent controls',
             },
             self::SPECIFIC_CARD => "to <i>{$parameters['card']}</i>",
-            self::HAS_KEYWORD => "with <i>{$keyword}</i>",
+            self::HAS_KEYWORD => "with <strong>{$keyword}</strong>",
             self::IS_DAMAGED => 'that is damaged',
             self::IS_UNCHANGED => 'that has its original power',
             self::IS_BUFFED => 'that is buffed',
+            self::DAMAGED_THIS_TURN => 'that was damaged this turn',
+            self::IS_STUNNED => 'that is stunned'
         };
     }
 

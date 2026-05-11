@@ -7,14 +7,12 @@ use App\Enums\Format;
 use App\Enums\Keyword;
 use App\Http\Middleware\Authenticate;
 use App\Livewire;
-use App\Livewire\Countdown;
 use App\Models\Boss;
 use App\Models\Card;
 use App\Models\Deck;
 use App\Models\Draft;
 use App\Models\Reward;
 use App\Models\WeeklyPack;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -27,6 +25,9 @@ Route::get('/', Livewire\Dashboard::class)
 
 Route::get('library', Livewire\Library\Index::class)
     ->name('library.index');
+
+Route::get('packs', Livewire\Packs\Index::class)
+    ->name('packs.index');
 
 Route::middleware([Authenticate::class])->group(function () {
     Route::get('logout', function () {
@@ -144,18 +145,18 @@ Route::get('challenges', function () {
     dd(ChallengeType::generate());
 });
 
-Route::get('countdown', Countdown::class);
+Route::get('countdown', Livewire\Countdown::class);
 
 Route::get('csv', function () {
     $path = storage_path('app/cards.csv');
 
-    $csv = Card::whereIn('type', [CardType::DUDE])
+    $csv = Card::whereIn('type', [CardType::RUSE])
         ->whereHas('sets', fn ($q) => $q->where('beta', false))
         ->get()
         ->map(function (Card $card) {
             // Tab separated string
             return collect($card->toJavaScript())
-                ->filter(fn ($v, $key) => in_array($key, ['name', 'cost', 'power', 'tribesText', 'text', 'image']))
+                ->filter(fn ($v, $key) => in_array($key, ['name', 'cost', 'tribesText', 'text', 'image']))
                 ->map(function (mixed $data, string $key) {
                     if ($key === 'image') {
                         @mkdir(storage_path('app/cards'), 0755, true);

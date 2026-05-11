@@ -4,6 +4,7 @@
     'text' => $card->toText(),
     'level' => $card->getLevel(),
     'rounded' => 'rounded-xl',
+    'hasTooltip' => true,
 ])
 
 @php if ($isArtifact) { $level = 3; /* Artifacts are always level 3 */ } @endphp
@@ -11,8 +12,9 @@
 <div
     data-card-id="{{ $card->id }}"
     style="background-image: url('{{ $card->getMedia()->path() }}?1')"
-    {{ $attributes->merge(['class' => $rounded . '
-        graahk-card has-tooltip w-full overflow-hidden
+    {{ $attributes->merge(['class' => $rounded
+        . ($hasTooltip ? ' has-tooltip ' : '')
+        . ' graahk-card w-full overflow-hidden
         bg-cover bg-center relative
         text-black select-none aspect-[2.5/3.5]
         isolate
