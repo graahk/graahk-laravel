@@ -43,6 +43,7 @@ class Card extends Model
 
     public $with = [
         'attachment',
+        'artist',
     ];
 
     public function attachment()
@@ -198,6 +199,7 @@ class Card extends Model
 
     public  function getMedia(): Attachment
     {
+            return $this->attachment;
         $alternateArt = AlternateArt::where('card_id', $this->id)
             ->whereHas('users', fn ($query) => $query->where('user_id', auth()->id()))
             ->first();

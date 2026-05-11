@@ -7,12 +7,14 @@ use App\Enums\Format;
 use App\Enums\Keyword;
 use App\Http\Middleware\Authenticate;
 use App\Livewire;
+use App\Livewire\Countdown;
 use App\Models\Boss;
 use App\Models\Card;
 use App\Models\Deck;
 use App\Models\Draft;
 use App\Models\Reward;
 use App\Models\WeeklyPack;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -141,6 +143,8 @@ Route::middleware([Authenticate::class])->group(function () {
 Route::get('challenges', function () {
     dd(ChallengeType::generate());
 });
+
+Route::get('countdown', Countdown::class);
 
 Route::get('csv', function () {
     $path = storage_path('app/cards.csv');

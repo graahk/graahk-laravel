@@ -5,6 +5,7 @@ namespace App\Livewire\Profiles;
 use AngryMoustache\Media\Models\Attachment;
 use App\Livewire\Traits\CanToast;
 use App\Models\Card;
+use App\Models\Playmat;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Livewire\Component;
@@ -24,6 +25,7 @@ class Edit extends Component
     public null | string $email = null;
 
     public null | TemporaryUploadedFile $avatar = null;
+    public null | TemporaryUploadedFile $playmat = null;
 
     public function mount()
     {
@@ -82,5 +84,27 @@ class Edit extends Component
         $this->user = User::find($this->user->id);
 
         $this->toast('Avatar has been updated!');
+    }
+
+    public function updatePlaymat()
+    {
+        $this->validate([
+            'playmat' => ['image', 'max:1024'],
+        ]);
+
+        $playmat = Attachment::livewireUpload($this->playmat);
+
+        $this->user->playmat()->update(['active' => false]);
+
+        Playmat::updateOrCreate([
+            'user_id' => $this->user->id,
+            'attachment_id' => $playmat->id
+        ], [
+            'active' => true,
+        ]);
+
+        $this->playmat = null;
+
+        $this->toast('Playmat has been updated!');
     }
 }

@@ -13,9 +13,6 @@ class Dashboard extends Component
 {
     public function render()
     {
-        Game::where('user_id_1', 2)->where('user_id_2', 4)->where('finished_at', null)->delete();
-        Game::where('user_id_1', 4)->where('user_id_2', 2)->where('finished_at', null)->delete();
-
         $canCreate = auth()->id() && Game::ongoing()->where(function ($query) {
             $query->where('user_id_1', auth()->id())->orWhere('user_id_2', auth()->id());
         })->count() === 0;

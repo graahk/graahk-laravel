@@ -8,7 +8,7 @@
         </div>
     </div>
 
-    <div class="flex gap-4 w-full">
+    <div class="flex gap-8 w-full">
         <div
             class="flex flex-col gap-4 w-full"
             wire:loading.class="opacity-50"
@@ -16,7 +16,7 @@
             <x-headers.h2 label="Upload new avatar" />
 
             <x-form.input
-                label="avatar"
+                label="Avatar"
                 wire:model.live="avatar"
                 type="file"
             />
@@ -46,7 +46,24 @@
             </div>
         </div>
 
-        <div class="flex flex-col gap-4 w-full">
+        <div class="flex flex-col gap-8 w-full">
+            <form
+                wire:submit.prevent="updatePlaymat"
+                class="flex flex-col gap-4 w-full"
+            >
+                <x-headers.h2 label="Playmat" />
+
+                <x-form.input
+                    label="Playmat"
+                    wire:model="playmat"
+                    type="file"
+                />
+
+                <div>
+                    <x-form.button label="Update playmat" />
+                </div>
+            </form>
+
             <form
                 wire:submit.prevent="update"
                 class="flex flex-col gap-6 w-full"

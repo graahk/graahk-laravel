@@ -6,6 +6,7 @@ use App\Enums\Format;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 
 class Game extends Model
 {
@@ -55,5 +56,13 @@ class Game extends Model
     public function format(): Format
     {
         return Deck::find(Arr::first($this->data['decks']))->format;
+    }
+
+    public static function booted()
+    {
+        static::saved(function (Game $game) {
+            Cache::forget("user_{$game->user_id_1}_games_count");
+            Cache::forget("user_{$game->user_id_2}_games_count");
+        });
     }
 }

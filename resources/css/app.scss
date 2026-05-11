@@ -73,3 +73,28 @@ html {
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #888; }
 ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+.bg-countdown {
+  background: rgb(53, 25, 49);
+  z-index: -101;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.2;
+    z-index: -100;
+    background: radial-gradient(circle at bottom center, rgb(228, 177, 248) 0%, transparent 70%);
+  }
+}
+
+.animate-shroomy-bounce {
+  animation: shroomy-bounce 1s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes shroomy-bounce {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0); }
+}
