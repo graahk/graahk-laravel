@@ -12,6 +12,7 @@ class AlternateArt extends Model
         'extended_name',
         'card_id',
         'artist_id',
+        'in_packs',
         'attachments',
     ];
 

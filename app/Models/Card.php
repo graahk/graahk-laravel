@@ -66,6 +66,12 @@ class Card extends Model implements Collectible
         return $this->hasMany(AlternateArt::class);
     }
 
+    public function packAlternateArts()
+    {
+        return $this->hasMany(AlternateArt::class)
+            ->where('in_packs', true);
+    }
+
     public function experience()
     {
         return $this->belongsToMany(User::class, 'experience')
@@ -157,7 +163,7 @@ class Card extends Model implements Collectible
             'id' => $this->id,
             'uuid' => (string) Str::uuid(),
             'name' => $this->name,
-            'image' => $this->getMedia()->path(),
+            'image' => $this->getMedia()->first()->path(),
             'cost' => $this->cost,
             'power' => $this->power,
             'tribes' => $this->tribes,

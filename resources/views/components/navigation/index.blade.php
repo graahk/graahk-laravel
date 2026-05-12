@@ -27,7 +27,7 @@
         <x-navigation.item
             route="{{ route('collection.index') }}"
             :active="request()->routeIs('collection.index')"
-            icon="heroicon-o-arrow-up-on-square-stack"
+            icon="heroicon-o-archive-box"
             label="Collection"
         />
 

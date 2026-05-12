@@ -13,14 +13,19 @@ class Index extends Component
     {
         $set = Set::find(collect([
             1,  // Base
-            // 6,  // Siege on El Dorado
-            // 10, // Ominous Atlantis
+            6,  // Siege on El Dorado
+            10, // Ominous Atlantis
         ])->random());
-        $cards = $set->cards()->noTokens()->get()->shuffle()->take(7);
+
+        $cards = collect();
+
+        for ($i = 0; $i < 8; $i++) {
+            $cards->push($set->cards()->noTokens()->get()->random());
+        }
 
         $cards->transform(function (Card $card, int $key) {
-            if ($card->alternateArts->isNotEmpty() && rand(0, 3) === 0) {
-                $card->alternateArt = $card->alternateArts->random();
+            if ($card->packAlternateArts->isNotEmpty() && rand(0, 3) === 0) {
+                $card->alternateArt = $card->packAlternateArts->random();
             }
 
             if (in_array($key, [0, 1, 2, 3])) {

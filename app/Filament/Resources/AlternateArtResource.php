@@ -9,10 +9,12 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class AlternateArtResource extends Resource
@@ -36,7 +38,8 @@ class AlternateArtResource extends Resource
                     ->options(\App\Models\Artist::all()->pluck('name', 'id'))
                     ->required(),
 
-                TextInput::make('extended_name'),
+                Toggle::make('in_packs')
+                    ->label('Included in packs?'),
             ]),
 
             Repeater::make('attachments')->columnSpanFull()->columns(1)->schema([
@@ -64,6 +67,10 @@ class AlternateArtResource extends Resource
 
                 TextColumn::make('artist.name')
                     ->searchable()
+                    ->sortable(),
+
+                ToggleColumn::make('in_packs')
+                    ->label('In packs')
                     ->sortable(),
             ])
             ->actions([
